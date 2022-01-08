@@ -1,0 +1,145 @@
+# write your code here
+
+msg_0 = "Enter an equation"
+
+msg_1 = "Do you even know what numbers are? Stay focused!"
+
+msg_2 = "Yes ... an interesting math operation. You've slept through all classes, haven't you?"
+
+msg_3 = "Yeah... division by zero. Smart move..."
+
+msg_4 = "Do you want to store the result? (y / n):"
+
+msg_5 = "Do you want to continue calculations? (y / n):"
+
+msg_6 = " ... lazy"
+
+msg_7 = " ... very lazy"
+
+msg_8 = " ... very, very lazy"
+
+msg_9 = "You are"
+
+msg_10 = "Are you sure? It is only one digit! (y / n)"
+
+msg_11 = "Don't be silly! It's just one number! Add to the memory? (y / n)"
+
+msg_12 = "Last chance! Do you really want to embarrass yourself? (y / n)"
+
+operations = ['+', '-', '*', '/']
+
+
+def is_one_digit(v):
+    if type(v) != int:
+        return False
+    elif -10 < v < 10:
+        return True
+    else:
+        return False
+
+
+def is_integer(n):
+    try:
+        float(n)
+    except ValueError:
+        return False
+    else:
+        return float(n).is_integer()
+
+
+def check(v1, v2, v3):
+    msg = ''
+    if is_one_digit(v1) and is_one_digit(v2):
+        msg = msg + msg_6
+    if (v1 == 1 or v2 == 1) and v3 == '*':
+        msg = msg + msg_7
+    if (v1 == 0 or v2 == 0) and (v3 == '*' or v3 == '+' or v3 == '-'):
+        msg = msg + msg_8
+    if msg != '':
+        msg = msg_9 + msg
+        print(msg)
+    return
+
+
+while True:
+    print(msg_0)
+    calc = input()
+    x, operand, y = calc.split()
+    if y == 'M':
+        y = memory
+    if x == 'M':
+        x = memory
+    try:
+        if type(x) == str and is_integer(x):
+            x = int(x.replace('.0', ''))
+        if not is_integer(x):
+            x = float(x)
+        if type(y) == str and is_integer(y):
+            y = int(y.replace('.0', ''))
+        if not is_integer(y):
+            y = float(y)
+
+    except ValueError:
+
+        print(msg_1)
+        continue
+    if operand not in operations:
+        print(msg_2)
+        continue
+    else:
+        check(x, y, operand)
+        if operand == '+':
+            res = float(x + y)
+            print(res)
+
+        elif operand == '-':
+            res = float(x - y)
+            print(res)
+
+        elif operand == '*':
+            res = float(x * y)
+            print(res)
+
+        elif operand == '/' and y != 0:
+            res = float(x / y)
+            print(res)
+
+        else:
+            print(msg_3)
+            continue
+    print(msg_4)
+    answer_store = input()
+    if is_integer(res):
+        res = int(res)
+    if answer_store == "y" and is_one_digit(res):
+        print(msg_10)
+        answer_store_1digit = input()
+        if answer_store_1digit == 'y':
+            print(msg_11)
+            answer_store_1digit2 = input()
+            if answer_store_1digit2 == 'y':
+                print(msg_12)
+                answer_last_chance_store = input()
+                if answer_last_chance_store == 'y':
+                    memory = res
+                    print(msg_5)
+                    answer_continue = input()
+                    if answer_continue == "y":
+                        continue
+                    else:
+                        exit()
+    if answer_store == 'y' and not is_one_digit(res):
+        memory = res
+        print(msg_5)
+        answer_continue = input()
+        if answer_continue == "y":
+            continue
+        else:
+            exit()
+    else:
+        print(msg_5)
+        answer_continue2 = input()
+        if answer_continue2 == "y":
+            continue
+        else:
+            break
