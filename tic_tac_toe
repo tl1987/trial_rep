@@ -1,0 +1,192 @@
+
+def grid(enter_cell):
+    line1 = grid_inp[0]
+    line2 = grid_inp[1]
+    line3 = grid_inp[2]
+    ceil = '-' * 9
+    left = '|'
+    right = left
+    floor = ceil
+    print(ceil)
+    print(left, *line1, right)
+    print(left, *line2, right)
+    print(left, *line3, right)
+    print(floor)
+
+
+def x_wins(grid_inp):
+    x_win = False
+    if grid_inp[0][0] == 'X' and grid_inp[0][1] == 'X' and grid_inp[0][2] == 'X':
+        x_win = True
+    elif grid_inp[1][0] == 'X' and grid_inp[1][1] == 'X' and grid_inp[1][2] == 'X':
+        x_win = True
+    elif grid_inp[2][0] == 'X' and grid_inp[2][1] == 'X' and grid_inp[2][2] == 'X':
+        x_win = True
+    elif grid_inp[0][0] == 'X' and grid_inp[1][1] == 'X' and grid_inp[2][2] == 'X':
+        x_win = True
+    elif grid_inp[0][2] == 'X' and grid_inp[1][1] == 'X' and grid_inp[2][0] == 'X':
+        x_win = True
+    elif grid_inp[0][0] == 'X' and grid_inp[1][0] == 'X' and grid_inp[2][0] == 'X':
+        x_win = True
+    elif grid_inp[0][1] == 'X' and grid_inp[1][1] == 'X' and grid_inp[2][1] == 'X':
+        x_win = True
+    elif grid_inp[0][2] == 'X' and grid_inp[1][2] == 'X' and grid_inp[2][2] == 'X':
+        x_win = True
+    return x_win
+
+
+def o_wins(grid_inp):
+    o_win = False
+    if grid_inp[0][0] == 'O' and grid_inp[0][1] == 'O' and grid_inp[0][2] == 'O':
+        o_win = True
+    elif grid_inp[1][0] == 'O' and grid_inp[1][1] == 'O' and grid_inp[1][2] == 'O':
+        o_win = True
+    elif grid_inp[2][0] == 'O' and grid_inp[2][1] == 'O' and grid_inp[2][2] == 'O':
+        o_win = True
+    elif grid_inp[0][0] == 'O' and grid_inp[1][1] == 'O' and grid_inp[2][2] == 'O':
+        o_win = True
+    elif grid_inp[0][2] == 'O' and grid_inp[1][1] == 'O' and grid_inp[2][0] == 'O':
+        o_win = True
+    elif grid_inp[0][0] == 'O' and grid_inp[1][0] == 'O' and grid_inp[2][0] == 'O':
+        o_win = True
+    elif grid_inp[0][1] == 'O' and grid_inp[1][1] == 'O' and grid_inp[2][1] == 'O':
+        o_win = True
+    elif grid_inp[0][2] == 'O' and grid_inp[1][2] == 'O' and grid_inp[2][2] == 'O':
+        o_win = True
+    return o_win
+
+
+def empty_spaces_left_in_grid(grid_inp):
+    empty_spaces = False
+    empty = 0
+    for row in grid_inp:
+        for col in row:
+            if col == ' ' or col == '_':
+                empty += 1
+                empty_spaces = True
+    return empty_spaces
+
+
+def difference_x_o(grid_inp):
+    count_X = 0
+    count_O = 0
+    difference_in_range = True
+    for row in grid_inp:
+        for col in row:
+            if col == 'X':
+                count_X += 1
+            elif col == 'O':
+                count_O += 1
+    difference = abs(count_X - count_O)
+    if difference > 1:
+        difference_in_range = False
+    return difference_in_range
+
+
+def impossible_game_state(grid_inp):
+    impossible = False
+    if not difference_x_o(grid_inp):
+        impossible = True
+    if x_wins(grid_inp) and o_wins(grid_inp):
+        impossible = True
+    elif not difference_x_o(grid_inp):
+        impossible = True
+    return impossible
+
+
+def empty_cell(x, y):
+    empty_cell = True
+    if grid_inp[x-1][y-1] == '_' or grid_inp[x-1][y-1] == ' ':
+        empty_cell = True
+    else:
+        empty_cell = False
+    return empty_cell
+
+
+def x_writing(x, y):
+    grid_inp[x - 1][y - 1] = 'X'
+    return grid(enter_cell)
+
+
+def o_writing(x, y):
+    grid_inp[x - 1][y - 1] = 'O'
+    return grid(enter_cell)
+
+
+enter_cell = ' ' * 9
+grid_inp = [
+    [enter_cell[0], enter_cell[1], enter_cell[2]],
+    [enter_cell[3], enter_cell[4], enter_cell[5]],
+    [enter_cell[6], enter_cell[7], enter_cell[8]]]
+grid(enter_cell)
+
+
+x_turn = True
+
+while True:
+    if impossible_game_state(grid_inp):
+        print('Impossible')
+        break
+    if x_wins(grid_inp) and not o_wins(grid_inp):
+        print('X wins')
+        break
+    if o_wins(grid_inp) and not x_wins(grid_inp):
+        print('O wins')
+        break
+    if not x_wins(grid_inp) and not o_wins(grid_inp):
+        if not empty_spaces_left_in_grid(grid_inp):
+            print('Draw')
+            break
+    while True:
+        try:
+            x, y = input('Enter the coordinates:\n').split()
+            x = int(x)
+            y = int(y)
+        except ValueError:
+            print('You should enter numbers!')
+            continue
+        if not 1 <= x <= 3 or not 1 <= y <= 3:
+            print('Coordinates should be from 1 to 3!')
+            continue
+        if empty_cell(x, y):
+            if x_turn:
+                x_writing(x, y)
+                x_turn = False
+                print(x_turn)
+                break
+            if not x_turn:
+                o_writing(x, y)
+                x_turn = True
+                break
+        if not empty_cell(x, y):
+            print('This cell is occupied! Choose another one!')
+            continue
+        if impossible_game_state(grid_inp):
+            print('Impossible')
+            break
+        if x_wins(grid_inp) and not o_wins(grid_inp):
+            print('X wins')
+            break
+        if o_wins(grid_inp) and not x_wins(grid_inp):
+            print('O wins')
+            break
+        if not x_wins(grid_inp) and not o_wins(grid_inp):
+            if not empty_spaces_left_in_grid(grid_inp):
+                print('Draw')
+                break
+            else:
+                if difference_x_o(grid_inp):
+                    print('Game not finished')
+                    break
+
+
+
+
+
+
+
+
+
+
+
+
