@@ -64,13 +64,11 @@ class CoffeeMachine:
             self.ACTION = 'EXIT'
             return self.ACTION
 
-    def buy_beverage(self, beverage_dict, beverage_function):
+    def buy_beverage(self, beverage_dict):
         enough_resources, limit_supply = self.check_resources(beverage_dict)
         if enough_resources:
             print("I have enough resources, making you a coffee!\n")
-            beverage_function()
         if not enough_resources:
-            print(enough_resources)
             print('Sorry, not enough', limit_supply)
             print('')
 
@@ -78,11 +76,14 @@ class CoffeeMachine:
         print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino:")
         answer = input()
         if answer == "1":
-            self.buy_beverage(self.espresso_needs, self.beverage_consumption(self.espresso_needs))
+            self.buy_beverage(self.espresso_needs)
+            self.beverage_consumption(self.espresso_needs)
         elif answer == "2":
-            self.buy_beverage(self.latte_needs, self.beverage_consumption(self.latte_needs))
+            self.buy_beverage(self.latte_needs)
+            self.beverage_consumption(self.latte_needs)
         elif answer == "3":
-            self.buy_beverage(self.capuccino_needs, self.beverage_consumption(self.capuccino_needs))
+            self.buy_beverage(self.capuccino_needs)
+            self.beverage_consumption(self.capuccino_needs)
 
     def beverage_consumption(self, beverage_dict):
         a = beverage_dict[self.WATER_REQ]
