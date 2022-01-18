@@ -1,11 +1,15 @@
 class CoffeeMachine:
-
     WATER_REQ = 'coffee_water_req_ml'
     MILK_REQ = 'coffee_milk_req_ml'
     BEANS_REQ = 'coffe_beans_req_g'
     CUPS_REQ = 'cups_req'
     COST = 'cost'
-    
+    espresso_needs = {WATER_REQ: 250, MILK_REQ: 0, BEANS_REQ: 16, CUPS_REQ: 1,
+                      COST: 4}
+    latte_needs = {WATER_REQ: 350, MILK_REQ: 75, BEANS_REQ: 20, CUPS_REQ: 1, COST: 7}
+    capuccino_needs = {WATER_REQ: 200, MILK_REQ: 100, BEANS_REQ: 12, CUPS_REQ: 1,
+                       COST: 6}
+
     def __init__(self, name):
         self.name = name
         self.water_left = 400
@@ -60,7 +64,7 @@ class CoffeeMachine:
             return self.ACTION
 
     def buy_beverage(self, beverage_dict, beverage_function):
-        enough_resources, limit_supply = self.check_resources(beverage_dict)
+        enough_resources, limit_supply = check_resources(self, beverage_dict)
         if enough_resources:
             print("I have enough resources, making you a coffee!\n")
             beverage_function()
@@ -72,47 +76,59 @@ class CoffeeMachine:
         print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino:")
         answer = input()
         if answer == "1":
-            self.buy_beverage(espresso_needs, self.espresso)
+            self.buy_beverage(self.espresso_needs, self.beverage_consumption(self.espresso_needs))
         elif answer == "2":
-            self.buy_beverage(latte_needs, self.latte)
+            self.buy_beverage(self.latte_needs, self.beverage_consumption(self.latte_needs))
         elif answer == "3":
-            self.buy_beverage(cappuchino_needs, self.cappuccino)
+            self.buy_beverage(self.capuccino_needs, self.beverage_consumption(self.capuccino_needs))
 
-    def espresso(self):
-        a = espresso_needs['coffee_water_req_ml']
-        b = espresso_needs['coffee_milk_req_ml']
-        c = espresso_needs['coffee_beans_req_g']
-        d = espresso_needs['cups_req']
-        e = espresso_needs['cost']
+    def beverage_consumption(self, beverage_dict):
+        a = beverage_dict[self.WATER_REQ]
+        b = beverage_dict[self.MILK_REQ]
+        c = beverage_dict[self.BEANS_REQ]
+        d = beverage_dict[self.CUPS_REQ]
+        e = beverage_dict[self.COST]
         self.water_left -= a
         self.milk_left -= b
         self.beans_left -= c
         self.cups_left -= d
         self.money_left += e
 
-    def latte(self):
-        a = latte_needs['coffee_water_req_ml']
-        b = latte_needs['coffee_milk_req_ml']
-        c = latte_needs['coffee_beans_req_g']
-        d = latte_needs['cups_req']
-        e = latte_needs['cost']
-        self.water_left -= a
-        self.milk_left -= b
-        self.beans_left -= c
-        self.cups_left -= d
-        self.money_left += e
-
-    def capuccino(self):
-        a = capuccino_needs['coffee_water_req_ml']
-        b = capuccino_needs['coffee_milk_req_ml']
-        c = capuccino_needs['coffee_beans_req_g']
-        d = capuccino_needs['cups_req']
-        e = capuccino_needs['cost']
-        self.water_left -= a
-        self.milk_left -= b
-        self.beans_left -= c
-        self.cups_left -= d
-        self.money_left += e
+    # def espresso(self):
+    #     a = self.espresso_needs[self.WATER_REQ]
+    #     b = self.espresso_needs[self.MILK_REQ]
+    #     c = self.espresso_needs[self.BEANS_REQ]
+    #     d = self.espresso_needs[self.CUPS_REQ]
+    #     e = self.espresso_needs[self.COST]
+    #     self.water_left -= a
+    #     self.milk_left -= b
+    #     self.beans_left -= c
+    #     self.cups_left -= d
+    #     self.money_left += e
+    #
+    # def latte(self):
+    #     a = self.latte_needs[self.WATER_REQ]
+    #     b = self.latte_needs[self.MILK_REQ]
+    #     c = self.latte_needs[self.BEANS_REQ]
+    #     d = self.latte_needs[self.CUPS_REQ]
+    #     e = self.latte_needs[self.COST]
+    #     self.water_left -= a
+    #     self.milk_left -= b
+    #     self.beans_left -= c
+    #     self.cups_left -= d
+    #     self.money_left += e
+    #
+    # def capuccino(self):
+    #     a = self.capuccino_needs[self.WATER_REQ]
+    #     b = self.capuccino_needs[self.MILK_REQ]
+    #     c = self.capuccino_needs[self.BEANS_REQ]
+    #     d = self.capuccino_needs[self.CUPS_REQ]
+    #     e = self.capuccino_needs[self.COST]
+    #     self.water_left -= a
+    #     self.milk_left -= b
+    #     self.beans_left -= c
+    #     self.cups_left -= d
+    #     self.money_left += e
 
     def fill(self):
         print("Write how many ml of water you want to add:")
@@ -132,33 +148,28 @@ class CoffeeMachine:
         print("I gave you $", self.money_left)
         print('')
         self.money_left = 0
-        
-        
-   def check_resources(self, beverage_dict):
-        a = self.water_left // beverage_dict[WATER_REQ]
-        b = self.beans_left // beverage_dict[BEANS_REQ]
-        c = self.cups_left // beverage_dict[CUPS_REQ]
-        division = min(a, b, c)
-        if division == a:
-            limit_supply = 'water'
-        if division == b:
-            limit_supply = 'beans'
-        if division == c:
-            limit_supply = 'cups'
-        if division > 0:
-            enough_resources = True
-        else:
-            enough_resources = False
-        return enough_resources, limit_supply
-
-    
-espresso_needs = {WATER_REQ: 250, MILK_REQ: 0, BEANS_REQ: 16, CUPS_REQ: 1,
-                  COST: 4}
-latte_needs = {WATER_REQ: 350, MILK_REQ: 75, BEANS_REQ: 20, CUPS_REQ: 1, COST: 7}
-capuccino_needs = {WATER_REQ: 200, MILK_REQ: 100, BEANS_REQ: 12, CUPS_REQ: 1,
-                   COST: 6}
 
 
-# TO INITIALIZE:
-# machine_1 = CoffeeMachine('Machine_1')
-# machine_1.run()
+def check_resources(self, beverage_dict):
+    a = self.water_left // beverage_dict[self.WATER_REQ]
+    b = self.beans_left // beverage_dict[self.BEANS_REQ]
+    c = self.cups_left // beverage_dict[self.CUPS_REQ]
+    division = min(a, b, c)
+    if division == a:
+        limit_supply = 'water'
+    if division == b:
+        limit_supply = 'beans'
+    if division == c:
+        limit_supply = 'cups'
+    if division > 0:
+        enough_resources = True
+    else:
+        enough_resources = False
+    return enough_resources, limit_supply
+
+
+
+
+
+machine_1 = CoffeeMachine('Machine_1')
+machine_1.run()
