@@ -150,22 +150,22 @@ class CoffeeMachine:
         self.money_left = 0
 
 
-def check_resources(self, beverage_dict):
-    a = self.water_left // beverage_dict[self.WATER_REQ]
-    b = self.beans_left // beverage_dict[self.BEANS_REQ]
-    c = self.cups_left // beverage_dict[self.CUPS_REQ]
-    division = min(a, b, c)
-    if division == a:
-        limit_supply = 'water'
-    if division == b:
-        limit_supply = 'beans'
-    if division == c:
-        limit_supply = 'cups'
-    if division > 0:
-        enough_resources = True
-    else:
-        enough_resources = False
-    return enough_resources, limit_supply
+    def check_resources(self, beverage_dict):
+        a = self.water_left // beverage_dict[self.WATER_REQ]
+        b = self.beans_left // beverage_dict[self.BEANS_REQ]
+        c = self.cups_left // beverage_dict[self.CUPS_REQ]
+        division = min(a, b, c)
+        if division == a:
+            limit_supply = 'water'
+        if division == b:
+            limit_supply = 'beans'
+        if division == c:
+            limit_supply = 'cups'
+        if division > 0:
+            enough_resources = True
+        else:
+            enough_resources = False
+        return enough_resources, limit_supply
 
 
 
