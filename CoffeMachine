@@ -7,6 +7,7 @@ class CoffeeMachine:
     espresso_needs = {WATER_REQ: 250, MILK_REQ: 0, BEANS_REQ: 16, CUPS_REQ: 1,
                       COST: 4}
     latte_needs = {WATER_REQ: 350, MILK_REQ: 75, BEANS_REQ: 20, CUPS_REQ: 1, COST: 7}
+
     capuccino_needs = {WATER_REQ: 200, MILK_REQ: 100, BEANS_REQ: 12, CUPS_REQ: 1,
                        COST: 6}
 
@@ -64,11 +65,12 @@ class CoffeeMachine:
             return self.ACTION
 
     def buy_beverage(self, beverage_dict, beverage_function):
-        enough_resources, limit_supply = check_resources(self, beverage_dict)
+        enough_resources, limit_supply = self.check_resources(beverage_dict)
         if enough_resources:
             print("I have enough resources, making you a coffee!\n")
             beverage_function()
         if not enough_resources:
+            print(enough_resources)
             print('Sorry, not enough', limit_supply)
             print('')
 
@@ -94,42 +96,6 @@ class CoffeeMachine:
         self.cups_left -= d
         self.money_left += e
 
-    # def espresso(self):
-    #     a = self.espresso_needs[self.WATER_REQ]
-    #     b = self.espresso_needs[self.MILK_REQ]
-    #     c = self.espresso_needs[self.BEANS_REQ]
-    #     d = self.espresso_needs[self.CUPS_REQ]
-    #     e = self.espresso_needs[self.COST]
-    #     self.water_left -= a
-    #     self.milk_left -= b
-    #     self.beans_left -= c
-    #     self.cups_left -= d
-    #     self.money_left += e
-    #
-    # def latte(self):
-    #     a = self.latte_needs[self.WATER_REQ]
-    #     b = self.latte_needs[self.MILK_REQ]
-    #     c = self.latte_needs[self.BEANS_REQ]
-    #     d = self.latte_needs[self.CUPS_REQ]
-    #     e = self.latte_needs[self.COST]
-    #     self.water_left -= a
-    #     self.milk_left -= b
-    #     self.beans_left -= c
-    #     self.cups_left -= d
-    #     self.money_left += e
-    #
-    # def capuccino(self):
-    #     a = self.capuccino_needs[self.WATER_REQ]
-    #     b = self.capuccino_needs[self.MILK_REQ]
-    #     c = self.capuccino_needs[self.BEANS_REQ]
-    #     d = self.capuccino_needs[self.CUPS_REQ]
-    #     e = self.capuccino_needs[self.COST]
-    #     self.water_left -= a
-    #     self.milk_left -= b
-    #     self.beans_left -= c
-    #     self.cups_left -= d
-    #     self.money_left += e
-
     def fill(self):
         print("Write how many ml of water you want to add:")
         water_add = int(input())
@@ -148,7 +114,6 @@ class CoffeeMachine:
         print("I gave you $", self.money_left)
         print('')
         self.money_left = 0
-
 
     def check_resources(self, beverage_dict):
         a = self.water_left // beverage_dict[self.WATER_REQ]
