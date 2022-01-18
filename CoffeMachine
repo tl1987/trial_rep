@@ -152,11 +152,11 @@ class CoffeeMachine:
         return enough_resources, limit_supply
 
     
-espresso_needs = {WATER_REQ: 250, 'coffee_milk_req_ml': 0, 'coffee_beans_req_g': 16, 'cups_req': 1,
-                  'cost': 4}
-latte_needs = {'coffee_water_req_ml': 350, 'coffee_milk_req_ml': 75, 'coffee_beans_req_g': 20, 'cups_req': 1, 'cost': 7}
-capuccino_needs = {'coffee_water_req_ml': 200, 'coffee_milk_req_ml': 100, 'coffee_beans_req_g': 12, 'cups_req': 1,
-                   'cost': 6}
+espresso_needs = {WATER_REQ: 250, MILK_REQ: 0, BEANS_REQ: 16, CUPS_REQ: 1,
+                  COST: 4}
+latte_needs = {WATER_REQ: 350, MILK_REQ: 75, BEANS_REQ: 20, CUPS_REQ: 1, COST: 7}
+capuccino_needs = {WATER_REQ: 200, MILK_REQ: 100, BEANS_REQ: 12, CUPS_REQ: 1,
+                   COST: 6}
 
 
 # TO INITIALIZE:
