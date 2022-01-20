@@ -1,0 +1,271 @@
+
+class Domino:
+    PLAYER_TURN = False
+    COMPUTER_TURN = False
+    domino_snake = []
+    status_ = ''
+    winner = ''
+    is_legal = False
+
+    def __init__(self):
+        self.domino_set = []
+        self.player_pieces = []
+        self.stock_pieces = []
+        self.computer_pieces = []
+        self.score_dic = {'0': 0, '1': 0, '2': 0, '3': 0,
+                          '4': 0, '5': 0, '6': 0}
+        self.ratings = []
+
+    def domino_generator(self):
+        """generates a full domino set"""
+        self.domino_set = [[x, y] for x in range(7) for y in range(7)]
+        for x, y in self.domino_set:
+            if x == y:
+                continue
+            if [y, x] in self.domino_set:
+                self.domino_set.remove([y, x])
+        return self.domino_set
+
+    def distribute(self, turn_of_player):
+        """7 pieces for player and computer"""
+        random.shuffle(self.domino_set)
+        i = 1
+        while i < 8:
+            x = random.choice(self.domino_set)
+            turn_of_player.append(x)
+            self.domino_set.remove(x)
+            i += 1
+
+    def stock(self, left_pieces):
+        left_pieces.extend(self.domino_set)
+        self.domino_set.clear()
+
+    def status(self):
+        if self.PLAYER_TURN and not self.COMPUTER_TURN:
+            self.status_ = 'player'
+        elif self.COMPUTER_TURN and not self.PLAYER_TURN:
+            self.status_ = 'computer'
+        return self.status_
+
+    def starter(self):
+        """select the player who starts the game"""
+        while not self.PLAYER_TURN and not self.COMPUTER_TURN:
+            max_player_piece = max(self.player_pieces)
+            max_computer_piece = max(self.computer_pieces)
+            if max_player_piece > max_computer_piece:
+                self.domino_snake.append(max_player_piece)
+                self.player_pieces.remove(max_player_piece)
+                self.PLAYER_TURN = False
+                self.COMPUTER_TURN = True
+                self.status()
+                break
+            elif max_player_piece < max_computer_piece:
+                self.domino_snake.append(max_computer_piece)
+                self.computer_pieces.remove(max_computer_piece)
+                self.COMPUTER_TURN = False
+                self.PLAYER_TURN = True
+                self.status()
+                break
+            else:
+                self.initialize()
+        return self.PLAYER_TURN, self.COMPUTER_TURN, self.domino_snake, self.status_
+
+    def initialize(self):
+        self.domino_generator()  # full domino set
+        self.distribute(self.player_pieces)  # 7 pieces for player
+        self.distribute(self.computer_pieces)  # 7 pieces for computer
+        self.stock(self.stock_pieces)  # remaining 10 pieces for stock
+
+    def state_game(self):
+        print('Stock pieces:', self.stock_pieces)
+        print('Computer pieces:', self.computer_pieces)
+        print('Player pieces:', self.player_pieces)
+        print('Domino snake:', self.domino_snake)
+        print('Status:', self.status_)
+
+    def ui_screen(self):
+        print('=' * 70)
+        print('Stock size:', len(self.stock_pieces))
+        print('Computer pieces:', len(self.computer_pieces))
+        print('')
+        if len(self.domino_snake) <= 6:
+            for x in self.domino_snake:
+                print(x, end='')
+
+        else:
+            a, b, c = self.domino_snake[0], self.domino_snake[1], self.domino_snake[2]
+            d, e, f = self.domino_snake[-3], self.domino_snake[-2], self.domino_snake[-1]
+            print(f"{a}{b}{c}...{d}{e}{f}")
+        print('')
+        print('\nYour pieces:')
+        for x in self.player_pieces:
+            number = self.player_pieces.index(x) + 1
+            print(f"{number}:{x}")
+        print('')
+
+    def player_action(self):
+        while not self.is_legal:
+            try:
+                print("Status: It's your turn to make a move. Enter your command.")
+                input_raw = input()
+                input_number = abs(int(input_raw))
+                if input_number > len(self.player_pieces):
+                    print('Invalid input. Please try again.')
+                    continue
+            except ValueError or IndexError:
+                print('Invalid input. Please try again.')
+                continue
+            if input_number == 0:
+                if len(self.stock_pieces) > 0:
+                    taken_stock_piece = random.choice(self.stock_pieces)
+                    self.stock_pieces.remove(taken_stock_piece)
+                    self.player_pieces.append(taken_stock_piece)
+                    self.PLAYER_TURN = False
+                    self.COMPUTER_TURN = True
+                    break
+                else:
+                    self.PLAYER_TURN = False
+                    break
+            player_piece_to_locate = self.player_pieces[input_number - 1]
+            self.legal_move(player_piece_to_locate)
+            if not self.is_legal:
+                print('Illegal move. Please try again.')
+                continue
+            else:
+                self.reorientation(player_piece_to_locate)
+                self.player_pieces.remove(player_piece_to_locate)
+                self.PLAYER_TURN = False
+                self.COMPUTER_TURN = True
+                break
+        self.is_legal = False
+
+    def legal_move(self, piece_to_locate):
+        """checks if the piece has right numbers"""
+        a = piece_to_locate[0]
+        b = piece_to_locate[1]
+        if a == self.domino_snake[0][0] or a == self.domino_snake[-1][1]:
+            self.is_legal = True
+        elif b == self.domino_snake[0][0] or b == self.domino_snake[-1][1]:
+            self.is_legal = True
+        else:
+            self.is_legal = False
+        return self.is_legal
+
+    def reorientation(self, piece_to_locate):
+        a = piece_to_locate[0]
+        b = piece_to_locate[1]
+        if a == self.domino_snake[-1][1]:
+            self.domino_snake.append(piece_to_locate)
+        elif b == self.domino_snake[0][0]:
+            self.domino_snake.insert(0, piece_to_locate)
+        elif a == self.domino_snake[0][0]:
+            new_reversed = [piece_to_locate[1], piece_to_locate[0]]
+            self.domino_snake.insert(0, new_reversed)
+        elif b == self.domino_snake[-1][1]:
+            new_reversed = [piece_to_locate[1], piece_to_locate[0]]
+            self.domino_snake.append(new_reversed)
+
+    def computer_action(self):
+        print('Status: Computer is about to make a move. Press Enter to continue...')
+        input()
+        i = 1
+        a = 0  # score
+        while i < len(self.computer_pieces):
+            self.score_dic = {'0': 0, '1': 0, '2': 0, '3': 0,
+                              '4': 0, '5': 0, '6': 0}
+            self.artificial_intelligence()
+            comp_piece_to_locate = self.computer_pieces[self.ratings[a][1]]
+            self.legal_move(comp_piece_to_locate)
+            if not self.is_legal:
+                a += 1
+                i += 1
+                continue
+            else:
+                self.reorientation(comp_piece_to_locate)
+                self.computer_pieces.remove(comp_piece_to_locate)
+                self.COMPUTER_TURN = False
+                self.PLAYER_TURN = True
+                self.is_legal = False
+                break
+        else:
+            if len(self.stock_pieces) > 0:
+                taken_stock_piece = random.choice(self.stock_pieces)
+                self.stock_pieces.remove(taken_stock_piece)
+                self.computer_pieces.append(taken_stock_piece)
+        self.COMPUTER_TURN = False
+        self.PLAYER_TURN = True
+
+    def artificial_intelligence(self):
+        self.counter_numbers(self.computer_pieces)
+        self.counter_numbers(self.domino_snake)
+        self.ratings = []
+        for x in self.computer_pieces:
+            value = self.score_dic[str(x[0])] + self.score_dic[str(x[1])]
+            self.ratings.append([value, self.computer_pieces.index(x)])
+        self.ratings.sort(reverse=True)
+
+    def counter_numbers(self, list_to_count):
+        for x in list_to_count:
+            for y in x:
+                if y == 0:
+                    self.score_dic['0'] += 1
+                elif y == 1:
+                    self.score_dic['1'] += 1
+                elif y == 2:
+                    self.score_dic['2'] += 1
+                elif y == 3:
+                    self.score_dic['3'] += 1
+                elif y == 4:
+                    self.score_dic['4'] += 1
+                elif y == 5:
+                    self.score_dic['5'] += 1
+                elif y == 6:
+                    self.score_dic['6'] += 1
+
+    def winner_ran_out_pieces(self):
+        if len(self.player_pieces) < 1:
+            self.winner = 'Player'
+            print('Status: The game is over. You won!')
+            exit()
+        elif len(self.computer_pieces) < 1:
+            self.winner = 'Computer'
+            print('Status: The game is over. The computer won!')
+            exit()
+        return self.winner
+
+    def draw(self):
+        """draw when 1st num of snake == last one & repeats 8 times"""
+        beg_num = self.domino_snake[0][0]
+        end_num = self.domino_snake[-1][1]
+        if beg_num == end_num:
+            count = 0
+            for x in self.domino_snake:
+                for y in x:
+                    if y == beg_num:
+                        count += 1
+            if count >= 8:
+                print("Status: The game is over. It's a draw!")
+                exit()
+
+    def play(self):
+        """here is the seq of the game through the functions"""
+        self.initialize()
+        self.starter()
+        self.ui_screen()
+        while True:
+            while self.PLAYER_TURN:
+                self.player_action()
+                self.ui_screen()
+                self.winner_ran_out_pieces()
+                self.draw()
+                continue
+            while self.COMPUTER_TURN:
+                self.computer_action()
+                self.ui_screen()
+                self.winner_ran_out_pieces()
+                self.draw()
+                continue
+
+
+my_domino = Domino()
+my_domino.play()
