@@ -125,7 +125,7 @@ class KnightGame:
 
 
 def main():
-    knight_1 = Knight_game()
+    knight_1 = KnightGame()
     knight_1.board_dimensions()
     knight_1.starting_position()
     knight_1.possible_moves()
