@@ -6,6 +6,8 @@ class KnightGame:
     chances = []
     board = []
 
+    # CREO Q MI PRINCIPAL PROBLEMA ES QUE EL TABLERO LO TERMINO ARMANDO SIN QUE SEA UN ARRAY 2D.
+    
     def board_dimensions(self):
         while True:
             try:
@@ -24,43 +26,34 @@ class KnightGame:
                 continue
 
     def board_state_builder(self, cell_size):
-        border_length = ((self.col * (cell_size + 1)) + 3)
-        first_dash_line = (' ' * (cell_size - 1)) + ('-' * border_length)
-        last_line_num = ' ' * (cell_size + 1)
         print(self.chances)
-        self.board.append(first_dash_line)
-        r = (len(self.chances))
-        c = -1
         for i in range(self.rows, 0, -1):
             num_row = str(i).rjust(cell_size - 1)
             row = f"{num_row}|"
-            if r > c:
-                r -= 1
-                print(r)
             for j in range(1, self.col + 1):
                 if [i, j] == self.pos:
                     row += ' ' * cell_size
                     row += 'X'
-                elif [i, j] == self.chances[r]:
-                    row += ' ' * cell_size
-                    row += 'O'
-                    # print('c', c, 'i', i, 'j', j)
 
                 else:
                     row += ' '
                     row += '_' * cell_size
             row += ' |'
             self.board.append(row)
+
+    def board_state_printer(self, cell_size):
+        border_length = ((self.col * (cell_size + 1)) + 3)
+        first_dash_line = (' ' * (cell_size - 1)) + ('-' * border_length)
+        last_line_num = ' ' * (cell_size + 1)
+        print(first_dash_line)
+        for i in self.board:
+            print(''.join(i))
         for i in range(1, self.col + 1):
             col_num = str(i).rjust(cell_size)
             last_line_num += f"{col_num} "
         last_dash_line = (' ' * (cell_size - 1)) + ('-' * border_length)
-        self.board.append(last_dash_line)
-        self.board.append(last_line_num)
-
-    def board_state_printer(self):
-        for i in self.board:
-            print(''.join(i))
+        print(last_dash_line)
+        print(last_line_num)
 
     def board_state(self):
         if self.col * self.rows >= 100:
@@ -130,8 +123,9 @@ def main():
     knight_1.starting_position()
     knight_1.possible_moves()
     knight_1.board_state()
-    knight_1.board_state_printer()
+    knight_1.board_state_printer(knight_1.cell_size)
     
+
     print(knight_1.chances)
 
 
