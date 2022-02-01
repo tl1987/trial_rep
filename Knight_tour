@@ -26,7 +26,6 @@ class KnightGame:
                 continue
 
     def board_state_builder(self, cell_size):
-        print(self.chances)
         for i in range(self.rows, 0, -1):
             num_row = str(i).rjust(cell_size - 1)
             row = f"{num_row}|"
