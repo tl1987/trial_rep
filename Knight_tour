@@ -41,7 +41,7 @@ class KnightGame:
                 if [i, j] == self.pos:
                     row += ' ' * cell_size
                     row += 'X'
-                elif [i, j] == self.chances[c]:
+                elif [i, j] == self.chances[r]:
                     row += ' ' * cell_size
                     row += 'O'
                     # print('c', c, 'i', i, 'j', j)
