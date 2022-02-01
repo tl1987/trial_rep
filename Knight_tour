@@ -1,4 +1,4 @@
-class Knight_game:
+class KnightGame:
     pos = []
     rows = int
     col = int
