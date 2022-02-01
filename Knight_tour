@@ -53,6 +53,13 @@ class KnightGame:
         last_dash_line = (' ' * (cell_size - 1)) + ('-' * border_length)
         print(last_dash_line)
         print(last_line_num)
+        # ESTO DE ACA ABAJO ES LO Q SE ME OCURRE PARA SOLUCIONARLO. DESP VER COMO SOLUCIONO LOS BNORDES
+        board_2 = [[('_' * cell_size) for _ in range(self.col)] for _ in range(self.rows)]
+        print('board 2')
+        for i in range(len(self.chances)):
+            board_2[self.chances[i][0]][self.chances[i][1]] = 'O'
+        for i in board_2:
+            print(' '.join(i))
 
     def board_state(self):
         if self.col * self.rows >= 100:
