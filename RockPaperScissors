@@ -1,0 +1,90 @@
+import random
+
+
+class RockPaperScissors:
+    choices = []
+    exit_game = False
+    defenses = []
+    current_score = 0
+    user_name = ''
+    new_lst = []
+
+    def greeting(self):
+        self.user_name = input('Enter your name: ')
+        print(f"Hello, {self.user_name}")
+
+    def possible_choices(self):
+        choices_str = input()
+        if not choices_str:
+            self.choices = ['rock', 'paper', 'scissors']
+        else:
+            choices_list = choices_str.split(',')
+            self.choices = choices_list
+        print("Okay, let's start")
+
+    def comp_random(self):
+        global pc_choice
+        pc_choice = random.choice(self.choices)
+
+    def ratings_record(self):
+        with open('rating.txt', 'r') as global_ratings:
+            for users in global_ratings.readlines():
+                name, score = users.split()
+                if name == self.user_name:
+                    self.current_score += int(score)
+            global_ratings.close()
+
+    def stronger_weaker_lst(self, user_choice):
+        self.new_lst = []
+        user_ch_index = self.choices.index(user_choice)
+        for x in self.choices[(user_ch_index + 1):]:
+            self.new_lst.append(x)
+        for x in self.choices[:user_ch_index]:
+            self.new_lst.append(x)
+
+    def game_1(self):
+        reply = ''
+        while True:
+            user_choice = input()
+            if user_choice not in self.choices:
+                if user_choice == '!exit':
+                    print('Bye!')
+                    self.exit_game = True
+                    break
+                elif user_choice == '!rating':
+                    print(f"Your rating: {self.current_score}")
+                    continue
+                else:
+                    print('Invalid input')
+                    continue
+            else:
+                self.stronger_weaker_lst(user_choice)
+                x = len(self.new_lst) // 2
+                if pc_choice == user_choice:
+                    reply = f"There is a draw ({pc_choice})"
+                    self.current_score += 50
+                    break
+                elif pc_choice in self.new_lst[x:]:
+                    reply = f"Well done. The computer chose {pc_choice} and failed"
+                    self.current_score += 100
+                    break
+                elif pc_choice in self.new_lst[:x]:
+                    reply = f"Sorry, but the computer chose {pc_choice}"
+                    break
+
+        print(reply)
+
+    def main(self):
+        self.greeting()
+        self.possible_choices()
+        self.ratings_record()
+        while not self.exit_game:
+            self.comp_random()
+            self.game_1()
+        exit()
+
+
+
+
+play_1 = RockPaperScissors()
+play_1.main()
