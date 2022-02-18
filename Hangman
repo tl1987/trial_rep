@@ -1,0 +1,85 @@
+# Write your code here
+import random
+
+
+def menu():
+    options = ['play', 'exit']
+    while True:
+        print("Type \"play\" to play the game, \"exit\" to quit: ", end='')
+        opt_choice = input()
+        if opt_choice not in options:
+            continue
+        elif opt_choice == 'exit':
+            exit()
+        break
+
+
+def key_choice():
+    global key
+    keys_list = ['python', 'java', 'kotlin', 'javascript']
+    key = random.choice(keys_list)
+    # print(key)
+
+
+def initiate():
+    hidden_letters = ['-' for _ in key]
+    prev_ok_guesses = []
+    j = 8
+    while j > 0:
+        # print(j)
+        print('')
+        win(hidden_letters)
+        if winner:
+            break
+        print(*hidden_letters, sep='')
+        print("Input a letter: ", end='')
+        user_letter = input()
+        if not len(user_letter) == 1:
+            print("You should input a single letter")
+            continue
+        elif not user_letter.isalpha() or not user_letter.islower():
+            print("Please enter a lowercase English letter")
+            continue
+        elif user_letter in prev_ok_guesses:
+            print("You've already guessed this letter")
+            continue
+        elif user_letter not in key:
+            prev_ok_guesses.append(user_letter)
+            print("That letter doesn't appear in the word")
+            j -= 1
+            continue
+        elif user_letter in key:
+            prev_ok_guesses.append(user_letter)
+            indx_1 = key.find(user_letter)
+            indx_2 = key.rfind(user_letter)
+            for i in range(len(key)):
+                if i == indx_1 or i == indx_2:
+                    hidden_letters[i] = user_letter
+            continue
+    if not winner:
+        print('You lost!\n')
+
+
+def win(hidden_letters):
+    global winner
+    winner = False
+    word = ''
+    for x in hidden_letters:
+        word += x
+    if word == key:
+        print(word)
+        print("You guessed the word!\nYou survived!")
+        print('')
+        winner = True
+
+
+def main():
+    while True:
+        menu()
+        key_choice()
+        print('H A N G M A N')
+        initiate()
+
+
+if __name__ == '__main__':
+    main()
