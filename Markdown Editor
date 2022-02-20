@@ -1,0 +1,158 @@
+msg_opt = "Available formatters: plain bold italic header link inline-code new-line " \
+          "\nSpecial commands: !help !done "
+available_opt = ['plain',
+                 'bold',
+                 'italic',
+                 'header',
+                 'link',
+                 'inline-code',
+                 'ordered-list',
+                 'unordered-list',
+                 'new-line']
+special_cmd = ['!help', '!done']
+
+full_text = ''
+
+
+def save_file(full_text):
+    with open('output.md', 'w') as output_file:
+        output_file.write(full_text)
+        output_file.close()
+
+
+def main():
+    global ordered_list
+    while True:
+        print("Choose a formatter: ", end='')
+        user_inp = input()
+        if user_inp not in available_opt and user_inp not in special_cmd:
+            print("Unknown formatting type or command")
+            continue
+        elif user_inp == special_cmd[0]:
+            print(msg_opt)
+            continue
+        elif user_inp == special_cmd[1]:
+            save_file(full_text)
+            break
+        elif user_inp == available_opt[0]:
+            plain()
+            continue
+        elif user_inp == available_opt[1]:
+            bold()
+            continue
+        elif user_inp == available_opt[2]:
+            italic()
+            continue
+        elif user_inp == available_opt[3]:
+            header()
+            continue
+        elif user_inp == available_opt[4]:
+            link()
+            continue
+        elif user_inp == available_opt[5]:
+            inline_code()
+            continue
+        elif user_inp == available_opt[6]:
+            ordered_list = True
+            markdown_list()
+            continue
+        elif user_inp == available_opt[7]:
+            ordered_list = False
+            markdown_list()
+            continue
+        elif user_inp == available_opt[8]:
+            new_line()
+            continue
+
+
+def new_line():
+    global full_text
+    full_text += '\n'
+    print(full_text)
+
+
+def header():
+    global full_text
+    while True:
+        try:
+            level = input('Level: ')
+            level = int(level)
+            if not 0 < level < 7:
+                print("The level should be within the range of 1 to 6")
+                continue
+            break
+        except TypeError:
+            continue
+    text = input('Text: ')
+    level_markdown = str('#' * level)
+    text = level_markdown + ' ' + text + '\n'
+    full_text += text
+    print(full_text)
+
+
+def link():
+    global full_text
+    label = input('Label: ')
+    URL = input('URL: ')
+    full_text += f"[{label}]({URL})"
+    print(full_text)
+
+
+def plain():
+    global full_text
+    text = input('Text: ')
+    full_text += text
+    print(full_text)
+
+
+def bold():
+    global full_text
+    text = input('Text: ')
+    full_text += f"**{text}**"
+    print(full_text)
+
+
+def italic():
+    global full_text
+    text = input('Text: ')
+    full_text += f"*{text}*"
+    print(full_text)
+
+
+def inline_code():
+    global full_text
+    text = input('Text: ')
+    full_text += f"`{text}`"
+    print(full_text)
+
+
+def markdown_list():
+    global ordered_list
+    global full_text
+    while True:
+        try:
+            rows = input('Number of rows: ')
+            rows = int(rows)
+            if not 0 < rows:
+                print("The number of rows should be greater than zero")
+                continue
+        except TypeError:
+            continue
+        if ordered_list:
+            for i in range(1, rows + 1):
+                row_text = input(f"Row #{i}: ")
+                full_text += f"{i}. {row_text}\n"
+            print(full_text)
+            break
+        if not ordered_list:
+            for i in range(1, rows + 1):
+                row_text = input(f"Row #{i}: ")
+                full_text += f"* {row_text}\n"
+            print(full_text)
+            break
+
+if __name__ == '__main__':
+    main()
+
+
+
