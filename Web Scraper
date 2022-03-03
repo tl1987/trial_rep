@@ -1,0 +1,99 @@
+import string
+
+import requests
+
+from bs4 import BeautifulSoup
+
+import os
+
+
+def stage3():
+    url = input()
+    response = requests.get(url)
+    url_content = requests.get(url).content
+
+    if response:
+        with open('source.html', 'wb') as file_save:
+            file_save.write(url_content)
+            print('Content saved.')
+            file_save.close()
+    else:
+        print(f"The URL returned {response.status_code}")
+
+
+def stage4():
+    url = 'https://www.nature.com/nature/articles?sort=PubDate&year=2020&page=3'
+    r = requests.get(url)
+    url_content = r.content
+    soup = BeautifulSoup(url_content, 'html.parser')
+    news_article_filter = soup.find_all('span', {'class': 'c-meta__type'}, text='News')
+    article_titles = []
+    for news_article in news_article_filter:
+        anchor = news_article.find_parents('article')
+
+        for i in anchor:
+            art_link = i.a.get('href')
+            art_url_full = 'https://www.nature.com' + art_link
+            r2 = requests.get(art_url_full)
+            soup2 = BeautifulSoup(r2.content, 'html.parser')
+            art_body = soup2.text.strip()
+            anchor_title = i.a.text
+            article_title_subst = anchor_title.strip().translate(str.maketrans('', '', string.punctuation)).replace(' ',
+                                                                                                                    '_')
+            article_titles.append(article_title_subst)
+            with open(f'{article_title_subst}.txt', 'w', encoding="UTF-8") as file_save:
+                file_save.write(art_body)
+                file_save.close()
+
+    print(f"Saved articles: {article_titles}")
+
+
+def stage5():
+    global project_work_dir
+    num_pages_to_look = int(input())
+    article_type = input()
+    project_work_dir = os.getcwd()
+    for num in range(1, num_pages_to_look + 1):
+        url = 'https://www.nature.com/nature/articles?sort=PubDate&year=2020&page=' + str(num)
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        types = soup.find_all(class_="c-meta__type")
+        os.chdir(project_work_dir)
+        os.mkdir(f"Page_{num}")
+        for type in types:
+            if type.text == article_type:
+                parent_of_art_type = type.find_parent("article")
+                article_title = parent_of_art_type.find('h3').text
+                article_title_process = article_title.strip().translate(str.maketrans('', '', string.punctuation))\
+                    .replace(' ', '_')
+                article_link = 'https://www.nature.com' + (parent_of_art_type.find('a').get('href'))
+                r2 = requests.get(article_link)
+                soup2 = BeautifulSoup(r2.content, 'html.parser')
+
+                try:
+                    article_body = soup2.find(class_="c-article-body u-clearfix").text.strip()
+                    saving_file(num, article_body, article_title_process)
+                except AttributeError:
+                    try:
+                        article_body = soup2.find(class_="article__teaser").text.strip()
+                        saving_file(num, article_body, article_title_process)
+                    except AttributeError:
+                        try:
+                            article_body = soup2.find(class_="c-article-body").text.strip()
+                            saving_file(num, article_body, article_title_process)
+                        except AttributeError:
+                            try:
+                                article_body = soup2.find(class_="article-item__body").text.strip()
+                                saving_file(num, article_body, article_title_process)
+                            except AttributeError:
+                                print('No art body')
+
+
+def saving_file(num, article_body, article_title_process):
+    global project_work_dir
+    os.chdir(f"{project_work_dir}/Page_{num}")
+    with open(f"{article_title_process}.txt", 'w') as file_save:
+        file_save.write(article_body)
+        file_save.close()
+
+stage5()
