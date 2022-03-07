@@ -1,0 +1,78 @@
+import requests
+import json
+
+cache_dict = {}
+
+
+def cache(starting_currency):
+    url = f"http://www.floatrates.com/daily/{starting_currency}.json"
+    if starting_currency == 'eur':
+        r1 = requests.get(url)
+        json_usd = json.loads(r1.text)
+        json_rate = json_usd['usd']['inverseRate']
+        cache_dict['usd'] = json_rate
+
+    elif starting_currency == 'usd':
+        r1 = requests.get(url)
+        json_eur = json.loads(r1.text)
+        json_rate = json_eur['eur']['inverseRate']
+        cache_dict['eur'] = json_rate
+
+
+def stage6():
+    global starting_currency
+    starting_currency = input().lower()
+
+    cache(starting_currency)
+    prev_conver = set()
+    while True:
+        curr_to_exch_for = input().lower()
+        if not curr_to_exch_for:
+            exit()
+        else:
+            url = f"http://www.floatrates.com/daily/{starting_currency}.json"
+            r1 = requests.get(url)
+            json_ = json.loads(r1.text)
+            json_rate = json_[curr_to_exch_for]['rate']
+            cache_dict[curr_to_exch_for] = json_rate
+            amount_of_money = int(input())
+            print('Checking the cache...')
+
+            if curr_to_exch_for == 'usd':
+                print("Oh! It is in the cache!")
+                rate = cache_dict[curr_to_exch_for]
+                money_to_get = round(amount_of_money * rate, 2)
+                print(f"You received {money_to_get} {curr_to_exch_for.upper()}")
+
+            elif curr_to_exch_for == 'eur':
+                print("Oh! It is in the cache!")
+                rate = cache_dict[curr_to_exch_for]
+                money_to_get = round(amount_of_money * rate, 2)
+                print(f"You received {money_to_get} {curr_to_exch_for.upper()}")
+
+            else:
+
+                if curr_to_exch_for not in prev_conver:
+                    print("Sorry, but it is not in the cache!")
+                    url = f"http://www.floatrates.com/daily/{curr_to_exch_for}.json"
+                    r = requests.get(url)
+                    rate = json.loads(r.text)[f"{starting_currency}"]['inverseRate']
+                    money_to_get = round(amount_of_money * rate, 2)
+                    print(f"You received {money_to_get} {curr_to_exch_for.upper()}")
+                    prev_conver.add(curr_to_exch_for)
+                    cache_dict[curr_to_exch_for] = rate
+
+                else:
+                    print("Oh! It is in the cache!")
+                    rate = cache_dict[curr_to_exch_for]
+                    money_to_get = round(amount_of_money * rate, 2)
+                    print(f"You received {money_to_get} {curr_to_exch_for.upper()}")
+
+
+def main():
+    stage6()
+
+
+if __name__ == '__main__':
+    main()
+
