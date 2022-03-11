@@ -1,0 +1,198 @@
+import requests
+from bs4 import BeautifulSoup
+import argparse
+
+languages = ['Arabic', 'German', 'English', 'Spanish', 'French', 'Hebrew', 'Japanese', 'Dutch', 'Polish', 'Portuguese',
+             'Romanian', 'Russian', 'Turkish']
+msg1 = "Hello, you're welcome to the translator. Translator supports:"
+msg2 = "Type the number of your language: "
+msg3 = "Type the number of a language you want to translate to or '0' to translate to all languages:"
+msg4 = "Type the word you want to translate:"
+msg5 = '{} Examples'
+msg6 = '{} Translations'
+file_to_save = ''
+
+
+def arguments():
+    """to run code from command line"""
+    global original_language
+    global word
+    global target_language
+    parser = argparse.ArgumentParser(description='app to translate words to 13 languages')
+    parser.add_argument('source_language')
+    parser.add_argument('target_language')
+    parser.add_argument('word')
+    args = parser.parse_args()
+    original_language = args.source_language
+    target_language = args.target_language
+    word = args.word
+    if original_language.capitalize() not in languages and original_language != 'all':
+        print(f"Sorry, the program doesn't support {original_language}")
+        exit()
+    elif target_language.capitalize() not in languages and target_language != 'all':
+        print(f"Sorry, the program doesn't support {target_language}")
+        exit()
+
+    elif target_language == 'all':
+        all_lang()
+
+
+def initiate():
+    """to run code from IDE"""
+    global original_language
+    global word
+    global target_language
+
+    print(msg1)
+    for i in range(len(languages)):
+        print(str(i + 1) + ' ' + languages[i])
+
+    print(msg2)
+
+    try:
+        source_language_num = int(input())
+    except ValueError or TypeError:
+        print('wrong number')
+    original_language = languages[source_language_num - 1].lower()
+
+    print(msg3)
+    try:
+        target_language_num = int(input())
+    except TypeError:
+        print('wrong number')
+
+    print(msg4)
+    try:
+        word = input().lower()
+    except TypeError:
+        print('wrong word')
+
+    if target_language_num != 0:
+        target_language = languages[target_language_num - 1].lower()
+    else:
+        all_lang()
+
+
+def all_lang():
+    """translation to all supported languages"""
+    global original_language
+    global word
+    global page
+    for i in languages:
+        target_language = i.lower()
+        url = f"https://context.reverso.net/translation/{original_language}-{target_language}/{word}"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        try:
+            page = requests.get(url, headers=headers)
+        except requests.exceptions.ConnectionError:
+            print("Something wrong with your internet connection")
+            exit()
+        check_word(original_language, target_language, word)
+        translations_lists(page, target_language)
+    exit()
+
+
+def check_url():
+    """check connection with URL"""
+    global original_language
+    global word
+    global target_language
+    global page
+    url = f"https://context.reverso.net/translation/{original_language}-{target_language}/{word}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        page = requests.get(url, headers=headers)
+    except requests.exceptions.ConnectionError:
+        print("Something wrong with your internet connection")
+
+
+def check_word(original_language, target_language, word):
+    """check if word exists"""
+    url = f"https://context.reverso.net/translation/{original_language}-{target_language}/{word}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    page = requests.get(url, headers=headers)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    wrong_word_tag = soup.find_all(id='no-results')
+    for i in wrong_word_tag:
+        # print(i.text)
+        if 'not found' in i.text:
+            print(f"Sorry, unable to find {word}")
+            exit()
+
+def translations_lists(page, target_language):
+    """web scraping to get list of translations and context examples"""
+    global translations_list
+    global examples_both_lang_LIST
+    global examples_in_translated
+    global word
+    global file_to_save
+    soup = BeautifulSoup(page.content, 'html.parser')
+    trans_tags = soup.find_all('a', class_='translation')
+
+    # list of translated words
+
+    translations_list = []
+    for trans in trans_tags:
+        translations_list.append(trans.text.strip())
+
+    file_to_save += '\n' + msg6.format(target_language.capitalize())
+    for words in translations_list:
+        file_to_save += '\n' + words
+    file_to_save += '\n'
+
+    # list of examples in source language
+    example_tags = soup.find_all('div', class_='src ltr')
+    examples_original_lang = []
+    for example in example_tags:
+        examples_original_lang.append(example.text.strip())
+    # print(examples_original_lang)
+
+    file_to_save += '\n' + msg5.format(target_language.capitalize())
+
+    # list of examples in translated language
+    example_tags_translated_lang = soup.find_all('div', class_='trg ltr')
+    examples_in_translated = []
+    for example in example_tags_translated_lang:
+        examples_in_translated.append(example.text.strip())
+
+    # list of examples in ARABIC
+    example_arabic_tags = soup.find_all('div', lang='ar')
+    # print(example_arabic_tags)
+    for examples_ar in example_arabic_tags:
+        examples_in_translated.append(examples_ar.text.strip())
+
+    # list of examples in HEBREW
+    example_hebrew_tags = soup.find_all('div', class_="trg rtl")
+    # print(example_hebrew_tags)
+    for examples_ar in example_hebrew_tags:
+        examples_in_translated.append(examples_ar.text.strip())
+
+    # ordered list of examples in both languages
+    zip_iterator = zip(examples_original_lang, examples_in_translated)
+    lst = list(zip_iterator)
+    for (x, y) in lst:
+        file_to_save += '\n' + x
+        file_to_save += '\n' + y + '\n'
+
+    print(file_to_save)
+
+    # Save results to a file 'word'.txt
+    with open(f"{word}.txt", 'w', encoding='utf-8') as word_text_file:
+        word_text_file.write(file_to_save)
+        word_text_file.close()
+
+
+def main():
+    global page
+    global target_language
+    global file_to_save
+    global examples_in_translated
+    # initiate() if need to be run from IDE
+    arguments()
+    check_url()
+    check_word(original_language, target_language, word)
+    translations_lists(page, target_language)
+
+
+if __name__ == '__main__':
+    main()
