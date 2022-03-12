@@ -1,0 +1,96 @@
+import os
+import argparse
+from collections import deque
+import requests
+from bs4 import BeautifulSoup
+from colorama import Fore, Back, Style
+
+
+prev_web = deque()
+
+def arguments():
+    global user_directory
+    parser = argparse.ArgumentParser()
+    parser.add_argument('directory')
+    args = parser.parse_args()
+    user_directory = args.directory
+
+
+def make_directory():
+    global target_dir
+    try:
+        curr_dir = os.getcwd()
+        target_dir = curr_dir + '/' + user_directory
+        # print(target_dir)
+        os.mkdir(target_dir)
+    except FileExistsError:
+        pass
+
+
+def save_file(web, content):
+    global target_dir
+    web_dot_index = web.index('.')
+    web_filename = web[:web_dot_index]
+    with open(f"{target_dir}/{web_filename}", 'w') as file_save:
+        file_save.write(content)
+        file_save.close()
+
+def check_dir_exists(web):
+    global target_dir
+    try:
+        with open(f'{target_dir}/{web}', 'r') as file_open:
+            print(file_open.read())
+            file_open.close()
+    except FileNotFoundError or NameError:
+        print('Error: Invalid url')
+
+
+
+def stage1():
+    global target_dir
+    global user_directory
+    while True:
+        web = input()
+        if web == 'exit':
+            exit()
+
+        elif web == 'back':
+            if prev_web:
+                prev_web.pop()
+                old_web = prev_web.pop()
+                print(supported_webs[old_web])
+                continue
+            continue
+
+        elif prev_web:
+            check_dir_exists(web)
+            continue
+        else:
+            if '.' not in web:
+                print('Incorrect URL')
+                continue
+            url = f'https://{web}'
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(url, headers=headers)
+            if response:
+                try:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    for i in soup.find_all("a"):
+                        i.string = "".join([Fore.BLUE, i.get_text(), Fore.RESET])
+                    x = soup.get_text()
+                    print(x)
+                    make_directory()
+                    save_file(web, x)
+
+                except ConnectionError:
+                    print('Incorrect URL')
+
+
+def main():
+    global target_dir
+    arguments()
+    stage1()
+
+
+if __name__ == '__main__':
+    main()
