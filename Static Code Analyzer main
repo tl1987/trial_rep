@@ -1,0 +1,68 @@
+import os
+import argparse
+import natsort
+from rules_code_analyzer import RulesCodeAnalyzer
+
+is_file = False
+
+
+def check_if_file():
+    global is_file
+    global user_file_or_dir
+    if os.path.isfile(user_file_or_dir):
+        is_file = True
+
+
+def order_functions(lines, file_name):
+    global user_file_or_dir
+    first_object.S001_too_long(lines, file_name, user_file_or_dir)
+    first_object.S002_indentation(lines, file_name, user_file_or_dir)
+    first_object.S003_semicolon(lines, file_name, user_file_or_dir)
+    first_object.S004_less_spaces(lines, file_name, user_file_or_dir)
+    first_object.S005_TODO(lines, file_name, user_file_or_dir)
+    first_object.S006_blank_lines(lines, file_name, user_file_or_dir)
+    first_object.S007_spaces_def_class(lines, file_name, user_file_or_dir)
+    first_object.S008_camel_case_class(lines, file_name, user_file_or_dir)
+    first_object.S009_function_snake_name(lines, file_name, user_file_or_dir)
+    first_object.s010_argument_name(file_name, user_file_or_dir)
+    first_object.s011_var_name_snake_case(file_name, user_file_or_dir)
+    first_object.s012_default_arg_mutable(file_name, user_file_or_dir)
+
+
+def arguments():
+    global user_file_or_dir
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file_or_directory')
+    args = parser.parse_args()
+    user_file_or_dir = args.file_or_directory
+    check_if_file()
+    if is_file:
+        file = user_file_or_dir
+        with open(file, 'r') as code_file:
+            lines = code_file.readlines()
+            order_functions(lines, file)
+    if not is_file:
+        list_of_files = []
+
+        for i in os.listdir(user_file_or_dir):
+            if '.py' in i:
+                list_of_files.append(i)
+
+        list_of_files.sort()
+        for i in list_of_files:
+            python_file = i
+            with open(f"{user_file_or_dir}{os.sep}{python_file}", 'r') as code_file:
+                lines = code_file.readlines()
+                order_functions(lines, python_file)
+
+
+def main():
+    print('start')
+    arguments()
+    for i in natsort.natsorted(first_object.errors_report):
+        print(i)
+
+
+first_object = RulesCodeAnalyzer()
+
+main()
