@@ -1,0 +1,282 @@
+import re
+from natsort import natsorted
+import argparse
+import os
+import ast
+
+errors = {
+    'S001': 'Too Long',
+    'S002': 'Indentation is not a multiple of four',
+    'S003': 'Unnecessary semicolon after a statement',
+    'S004': 'Less than two spaces before inline comments',
+    'S005': 'TODO found',
+    'S006': 'More than two blank lines preceding a code line',
+    'S007': 'Too many spaces after {} (def or class)',
+    'S008': 'Class name {} should be written in CamelCase',
+    'S009': 'Function name {} should be written in snake_case',
+    'S010': 'Argument name {} should be written in snake_case',
+    'S011': 'Variable {} should be written in snake_case',
+    'S012': 'The default argument value is mutable'}
+
+errors_report = []
+
+is_file = False
+
+
+def S001_too_long(lines_, file_name):
+    for i in range(len(lines_)):
+        if len(lines_[i]) > 79:
+            if is_file:
+                errors_report.append(f"{file_name}: line {i + 1}: s001 {errors['S001']}")
+            else:
+                errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s001 {errors['S001']}")
+
+
+def S002_indentation(lines_, file_name):
+    for i in range(len(lines_)):
+
+        if lines_[i] != '\n' and (len(lines_[i]) - len(lines_[i].lstrip())) % 4:
+            if is_file:
+                errors_report.append(f"{file_name}: line {i + 1}: s002 {errors['S002']}")
+            else:
+                errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s002 {errors['S002']}")
+
+
+def S003_semicolon(lines_, file_name):
+    for i in range(len(lines_)):
+        regexp = r"\S.+[\w)];"
+        regexp2 = r'#\s+;'
+        regexp3 = r'[\#\'\"][\s\w]+;'
+        if re.search(regexp, lines_[i]) and not re.search(regexp2, lines_[i]) and not re.search(regexp3, lines_[i]):
+            if is_file:
+                errors_report.append(f"{file_name}: line {i + 1}: s003 {errors['S003']}")
+            else:
+                errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s003 {errors['S003']}")
+
+
+def S004_less_spaces(lines_, file_name):
+    for i in range(len(lines_)):
+        regexp = r'\s{,1}\#$'
+        regexp2 = r'\w.*[^\s]#'
+        regexp3 = r'\w.+[)][ ]#'
+        regexp4 = r'.+[ ]#'
+        regexp_to_avoid = r'.+\s{2,}#'
+        if not re.search(regexp_to_avoid, lines_[i]):
+            if re.search(regexp, lines_[i]) or re.search(regexp2, lines_[i]) or \
+                    re.search(regexp3, lines_[i]) or re.search(regexp4, lines_[i]):
+                # print(lines_[i])
+                if is_file:
+                    errors_report.append(f"{file_name}: line {i + 1}: s004 {errors['S004']}")
+                else:
+                    errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s004 {errors['S004']}")
+
+
+def S005_TODO(lines_, file_name):
+    for i in range(len(lines_)):
+        regexp = r'\# [TODOtodo]'
+        if re.search(regexp, lines_[i]):
+            if is_file:
+                errors_report.append(f"{file_name}: line {i + 1}: s005 {errors['S005']}")
+            else:
+                errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s005 {errors['S005']}")
+
+
+def S006_blank_lines(lines_, file_name):
+    regexp = r'^[\n]'
+    regexp2_not_blank = r'^[^\n]'
+
+    if re.search(regexp, lines_[0]) and re.search(regexp, lines_[1]) and re.search(regexp, lines_[2]):
+
+        for i in range(3, len(lines_)):
+            if re.search(regexp2_not_blank, lines_[i]):
+                if is_file:
+                    errors_report.append(f"{file_name}: line {i + 1}: s006 {errors['S006']}")
+                else:
+                    errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s006 {errors['S006']}")
+
+    for i in range(3, len(lines_)):
+        if re.search(regexp2_not_blank, lines_[i]):
+            if re.search(regexp, lines_[i - 1]) and re.search(regexp, lines_[i - 2]) and re.search(regexp, lines_[i - 3]):
+                if is_file:
+                    errors_report.append(f"{file_name}: line {i + 1}: s006 {errors['S006']}")
+                else:
+                    errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s006 {errors['S006']}")
+
+
+def S007_spaces_def_class(lines_, file_name):
+    regexp = r'def\s{2,}\w+'
+    regexp2 = r'class\s{2,}\w+'
+    for i in range(len(lines_)):
+        if re.search(regexp, lines_[i]) or re.search(regexp2, lines_[i]):
+            construction_name = lines_[i].split()[1].replace(':', '').replace('()', '')
+            # print(construction_name)
+            if is_file:
+                errors_report.append(f"{file_name}: line {i + 1}: s007 "
+                                     f"{errors['S007'].format(construction_name)}")
+            else:
+                errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line "
+                                     f"{i + 1}: s007 {errors['S007'].format(construction_name)}")
+
+
+def S008_camel_case_class(lines_, file_name):
+    regexp = r'^class'
+    for i in range(len(lines_)):
+        if re.search(regexp, lines_[i]):
+            class_name = lines_[i].split(' ')[1].replace('():', '').replace(':', '').strip()
+            if class_name.islower() or '_' in class_name:
+                if is_file:
+                    errors_report.append(f"{file_name}: line {i + 1}: s008 "
+                                         f"{errors['S008'].format(class_name)}")
+                else:
+                    errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s008 "
+                                         f"{errors['S008'].format(class_name)}")
+
+
+def S009_function_snake_name(lines_, file_name):
+    regexp_to_avoid = r'def\sclass\s'
+    regexp_to_find = r'def\s'
+    for i in range(len(lines_)):
+        if not re.search(regexp_to_avoid, lines_[i]):
+            if re.search(regexp_to_find, lines_[i]):
+                fx_name = lines_[i].strip().split()[1].replace('():', '')
+                # print(fx_name)
+                if not fx_name.islower():
+                    if is_file:
+                        errors_report.append(f"{file_name}: line {i + 1}: s009 "
+                                             f"{errors['S009'].format(fx_name)}")
+                    else:
+                        errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {i + 1}: s009 "
+                                             f"{errors['S009'].format(fx_name)}")
+
+
+
+def s010_argument_name(file_name):
+    if is_file:
+        script = open(file_name, 'r').read()
+    else:
+         script = open(f"{user_file_or_dir}{os.sep}{file_name}", 'r').read()
+    tree = ast.parse(script)
+    nodes = ast.walk(tree)
+    for node in nodes:
+        if isinstance(node, ast.FunctionDef):
+            function_name = node.name
+            arguments_name = [node.arg for node in node.args.args]
+            for i in arguments_name:
+                if not i.islower():
+                    line_number = node.lineno
+                    # print(line_number)
+                    # print(i)
+                    if is_file:
+                        errors_report.append(f"{file_name}: line {line_number}: s010 "
+                                             f"{errors['S010'].format(i)}")
+                    else:
+                        errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {line_number}: s010 "
+                                             f"{errors['S010'].format(i)}")
+                else: pass
+
+
+
+def s011_var_name_snake_case(file_name):
+    if is_file:
+        script = open(file_name, 'r').read()
+    else:
+         script = open(f"{user_file_or_dir}{os.sep}{file_name}", 'r').read()
+    tree = ast.parse(script)
+    nodes = ast.walk(tree)
+    for node in nodes:
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            variable_name = node.id
+            line_number = node.lineno
+            if not variable_name.islower():
+                if is_file:
+                    errors_report.append(f"{file_name}: line {line_number}: s011 "
+                                         f"{errors['S011'].format(variable_name)}")
+                else:
+                    errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {line_number}: s011 "
+                                         f"{errors['S011'].format(variable_name)}")
+
+
+def s012_default_arg_mutable(file_name):
+    if is_file:
+        script = open(file_name, 'r').read()
+    else:
+        script = open(f"{user_file_or_dir}{os.sep}{file_name}", 'r').read()
+    tree = ast.parse(script)
+    nodes = ast.walk(tree)
+    for node in nodes:
+        if isinstance(node, ast.FunctionDef):
+            arguments_ = [x for x in node.args.defaults]
+            # print(arguments_)
+            for i in arguments_:
+                if isinstance(i, ast.List):
+                    line_number = node.lineno
+                    if is_file:
+                        errors_report.append(f"{file_name}: line {line_number}: s012 "
+                                             f"{errors['S012']}")
+                    else:
+                        errors_report.append(f"{user_file_or_dir}{os.sep}{file_name}: line {line_number}: s012 "
+                                             f"{errors['S012']}")
+
+
+def order_functions(lines, file_name):
+    S001_too_long(lines, file_name)
+    S002_indentation(lines, file_name)
+    S003_semicolon(lines, file_name)
+    S004_less_spaces(lines, file_name)
+    S005_TODO(lines, file_name)
+    S006_blank_lines(lines, file_name)
+    S007_spaces_def_class(lines, file_name)
+    S008_camel_case_class(lines, file_name)
+    S009_function_snake_name(lines, file_name)
+    s010_argument_name(file_name)
+    s011_var_name_snake_case(file_name)
+    s012_default_arg_mutable(file_name)
+
+
+def check_if_file():
+    global is_file
+    if os.path.isfile(user_file_or_dir):
+        is_file = True
+
+
+
+def arguments():
+    global user_file_or_dir
+    global file
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file_or_directory')
+    args = parser.parse_args()
+    user_file_or_dir = args.file_or_directory
+    check_if_file()
+    if is_file:
+        file = user_file_or_dir
+        with open(file, 'r') as code_file:
+            lines = code_file.readlines()
+            order_functions(lines, file)
+    if not is_file:
+        list_of_files = []
+        for i in os.listdir(user_file_or_dir):
+            if '.py' in i:
+                list_of_files.append(i)
+
+        list_of_files.sort()
+        # print(list_of_files)
+        for i in list_of_files:
+            python_file = i
+            with open(f"{user_file_or_dir}{os.sep}{python_file}", 'r') as code_file:
+                lines = code_file.readlines()
+                order_functions(lines, python_file)
+
+
+
+
+def main():
+    global user_file_or_dir
+    arguments()
+
+
+if __name__ == '__main__':
+    main()
+    for i in natsorted(errors_report):
+        print(i)
+
