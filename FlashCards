@@ -1,0 +1,288 @@
+import random
+import os
+import argparse
+import sys
+
+msg_0 = 'Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):'
+msg_2 = 'The card:'
+msg_3 = 'The definition of the card:'
+msg_3b = 'The pair ("{}":"{}") has been added'
+msg_4 = 'Print the definition of "{}"'
+msg_5 = 'Wrong. The right answer is {}'
+msg_6 = 'This <{}/{}> already exists. Try again:'
+msg_6b = 'The term "{} already exists. Try again:'
+msg_7 = 'The definition "{}" already exists. Try again:'
+msg_7b = 'The pair ("{}":"{}") has been added.'
+msg_8 = 'Wrong. The right answer is "{}", but your definition is correct for "{}"'
+msg_9 = 'Which card?'
+msg_10 = 'The card has been removed.'
+msg_11 = 'Can\'t remove "{}": there is no such card.'
+msg_12 = 'File name:'
+msg_13 = 'File not found.'
+msg_14 = '{} cards have been loaded.'
+msg_15 = '{} cards have been saved.'
+msg_16 = 'How many times to ask?'
+msg_bye = 'Bye bye!'
+msg_17 = 'The hardest card is "{}". You have {} errors answering it'
+msg_18 = 'Card statistics have been reset.'
+msg_log = 'The log has been saved.'
+
+actions = ['add', 'remove', 'import', 'export', 'ask', 'exit', 'log', 'hardest card', 'reset stats']
+
+export_from_opt_arg = False
+
+class FlashCard:
+    """each flashcard is an object with term & def"""
+    def __init__(self, term: str, definition: str) -> None:
+        self.term = term
+        self.definition = definition
+
+    def get_term(self):
+        return self.term
+
+    def get_definition(self):
+        return self.definition
+
+    def check_definition(self, user_definition):
+        return bool(self.definition == user_definition)
+
+
+class FlashCardHolder:
+    """container for all flashcards"""
+    def __init__(self):
+        self.cardholder = []
+        # self.cards_to_add = cards
+        self.definitions = set()
+        self.terms = set()
+        self.mistakes = dict()
+
+    def add_flashcard(self, term, definition):
+        new_flashcard = FlashCard(term, definition)
+        self.cardholder.append(new_flashcard)
+        self.definitions.add(new_flashcard.definition)
+        self.terms.add(new_flashcard.term)
+        self.mistakes[term] = 0
+
+    def all_flashcards(self):
+        return self.cardholder
+
+    def remove_flashcard(self, term):
+        for i in range(0, len(self.cardholder)):
+            if self.cardholder[i].get_term() == term:
+                # print(self.cardholder[i].definition)
+                self.definitions.remove(self.cardholder[i].definition)
+                self.terms.remove(self.cardholder[i].term)
+                self.cardholder.remove(self.cardholder[i])
+                print(msg_10)
+                return None
+
+        print(msg_11.format(term))
+        for card in self.cardholder:
+            print(card.get_term())
+
+
+class LoggerOut:
+    """sys stdout is saved to file"""
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.filename = filename
+
+    def write(self, message):
+        self.terminal.write(message)
+        with open(self.filename, 'a') as file:
+            print(message, file=file, flush=True, end='')
+
+    def flush(self):
+        pass
+
+
+class LoggerIn:
+    """sys stdin is saved to file"""
+    def __init__(self, filename):
+        self.terminal = sys.stdin
+        self.filename = filename
+
+    def readline(self):
+        entry = self.terminal.readline()
+        with open(self.filename, "a") as file:
+            print(entry.rstrip(), file=file, flush=True)
+        return entry
+
+
+def opt_arguments(card_holder):
+    """if cmd line args are specified to import/export"""
+    global export_from_opt_arg
+    global export_to_filename
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--import_from')
+    parser.add_argument('--export_to')
+    args = parser.parse_args()
+    import_from_filename = args.import_from
+    export_to_filename = args.export_to
+    if import_from_filename:
+        import_from_file(import_from_filename, card_holder)
+    if export_to_filename:
+        export_from_opt_arg = True
+
+
+def main_2():
+    global export_from_opt_arg
+    card_holder = FlashCardHolder()
+
+    # save log in a default .txt file
+    default_log = 'default.txt'
+    sys.stdout = LoggerOut(default_log)
+    sys.stdin = LoggerIn(default_log)
+
+    opt_arguments(card_holder)
+
+    while True:
+        print(msg_0)
+        user_action = input()
+        if user_action == actions[0]:
+            add_flashcard_checked(card_holder)
+        elif user_action == actions[1]:
+            print(msg_9)
+            card_to_remove = input()
+            card_holder.remove_flashcard(card_to_remove)
+
+        elif user_action == actions[2]:
+            print(msg_12)
+            file_name = input()
+            import_from_file(file_name, card_holder)
+
+        elif user_action == actions[3]:
+            print(msg_12)
+            file_name = input()
+            export_to_file(file_name, card_holder)
+
+        elif user_action == actions[4]:
+            if not card_holder.all_flashcards():
+                continue
+            else:
+                print(msg_16)
+                num_times_ask = int(input())
+                ask(num_times_ask, card_holder)
+
+        elif user_action == actions[5]:
+            if export_from_opt_arg:
+                export_to_file(export_to_filename, card_holder)
+                print(msg_bye)
+                exit()
+            else:
+                print(msg_bye)
+                exit()
+
+        elif user_action == actions[6]:
+            log_to_file(default_log)
+
+        elif user_action == actions[7]:
+            try:
+                hardest_card(card_holder)
+            except UnboundLocalError:
+                print('There are no cards with errors.')
+
+        elif user_action == actions[8]:
+            card_holder.mistakes.clear()
+            print(msg_18)
+
+
+def log_to_file(default_log):
+    """if log required, copy default log file"""
+    print(msg_12)
+    file_name = input()
+    print(msg_log)
+
+    with open(default_log, 'r', encoding='utf-8') as f:
+        lines = f.read()
+        print(lines)
+        with open(file_name, 'a', encoding='utf-8') as new_log:
+            new_log.write(lines)
+
+
+def add_flashcard_checked(card_holder):
+    """check if card term or def is not repeated,
+    adds it to card_holder"""
+    print(msg_2)
+    while True:
+        term = input()
+        if term in card_holder.terms:
+            print(msg_6b.format(term))
+            continue
+        else:
+            break
+    print(msg_3)
+    while True:
+        definition = input()
+        if definition in card_holder.definitions:
+            print(msg_7.format(definition))
+            continue
+        else:
+            break
+
+    print(msg_7b.format(term, definition))
+    card_holder.add_flashcard(term, definition)
+    # print(card_holder.mistakes)
+
+
+def import_from_file(file, card_holder):
+    """import cards from file"""
+    abs_filepath = os.path.join(os.getcwd(), file)
+    if os.path.exists(abs_filepath):
+        with open(abs_filepath, 'r', encoding='utf-8') as file:
+            file_read = file.readlines()
+            n = 0
+            for i in file_read:
+                term = i.split(': ')[0].rstrip()
+                definition = i.split(': ')[1].rstrip()
+                card_holder.add_flashcard(term, definition)
+                n += 1
+            print(msg_14.format(n))
+            file.close()
+    else:
+        print(msg_13)
+
+
+def export_to_file(file, card_holder):
+    with open(file, 'a', encoding='utf-8') as file:
+        for card in card_holder.cardholder:
+            file.write(f"{card.get_term()}: {card.get_definition()}\n")
+    file.close()
+    n = len(card_holder.cardholder)
+    print(msg_15.format(n))
+
+
+def ask(number, card_holder):
+    """test correct answers n required times"""
+    for i in range(number):
+        card = random.choice(card_holder.cardholder)
+        print(msg_4.format(card.term))
+        user_definition = input()
+        if card.check_definition(user_definition):
+            print('Correct!')
+        else:
+            card_holder.mistakes[card.term] += 1
+            if user_definition in card_holder.definitions:
+                for card2 in card_holder.all_flashcards():
+                    if card2.get_definition() == user_definition:
+                        print(msg_8.format(card.get_definition(), card2.get_term()))
+
+            else:
+                print(msg_5.format(card.definition))
+
+
+def hardest_card(card_holder):
+    """saves the card with most mistakes"""
+    max_mistakes = 0
+    for card, mistakes in card_holder.mistakes.items():
+        if mistakes >= max_mistakes:
+            max_mistakes = mistakes
+            max_mistakes_card = card
+            # print(max_mistakes_card)
+
+    print(msg_17.format(max_mistakes_card, max_mistakes))
+
+
+if __name__ == '__main__':
+    main_2()
+
