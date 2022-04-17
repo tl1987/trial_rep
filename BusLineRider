@@ -1,0 +1,244 @@
+# THIS IS A PROGRAM TO CHECK JSON DOCUMENTATION FROM BUSES LINES.
+
+import datetime
+import json
+import re
+import collections
+
+errors_dict = {'bus_id': 0, 'stop_id': 0, 'stop_name': 0, 'next_stop': 0, 'stop_type': 0, 'a_time': 0}
+msg = "Type and required field validation: {} errors"
+num_errors = 0
+time_pattern = re.compile(r'(^[0-1][0-9]:[0-5][0-9])$')
+stop_name_pattern = re.compile(r'([A-Z][a-z]+[ A-Z]*[a-z]*) (Road|Avenue|Boulevard|Street)$')
+bus_stops = json.loads(input())
+
+
+def validate_doc():
+    global num_errors
+    for i in range(len(bus_stops)):
+        if not isinstance(bus_stops[i]['bus_id'], int):
+            pass
+            # errors_dict['bus_id'] += 1
+        if not isinstance(bus_stops[i]['stop_id'], int):
+            pass
+            # errors_dict['stop_id'] += 1
+        if not isinstance(bus_stops[i]['stop_name'], str) or len(
+                bus_stops[i]['stop_name']) <= 1 or not stop_name_pattern.match(
+            bus_stops[i]['stop_name']):
+            errors_dict['stop_name'] += 1
+            # print(x[i]['stop_name'])
+        if not isinstance(bus_stops[i]['next_stop'], int):
+            pass
+            # errors_dict['next_stop'] += 1
+        if not isinstance(bus_stops[i]['stop_type'], str) or len(bus_stops[i]['stop_type']) > 1 or bus_stops[i][
+            'stop_type'] not in ['S', 'O', 'F',
+                                 '']:
+            errors_dict['stop_type'] += 1
+        if not isinstance(bus_stops[i]['a_time'], str) or len(bus_stops[i]['a_time']) <= 1:
+            errors_dict['a_time'] += 1
+        if not time_pattern.match(bus_stops[i]['a_time']):
+            errors_dict['a_time'] += 1
+
+    for i in errors_dict.values():
+        num_errors = num_errors + i
+
+
+def stage_2_output():
+    print(msg.format(num_errors))
+    for key, val in errors_dict.items():
+        if key in ['stop_name', 'stop_type', 'a_time']:
+            print(key + ': ' + str(val))
+
+
+def stage_3_output():
+    bus_id_stops_dict = {}
+    for i in range(len(bus_stops)):
+        print(bus_stops[i])
+        bus_id_stops_dict[bus_stops[i].get('bus_id')] = 0
+    for i in range(len(bus_stops)):
+        bus_id_stops_dict[bus_stops[i].get('bus_id')] += 1
+
+    for bus, stops in bus_id_stops_dict.items():
+        print(f"bus_id: {bus}, stops: {stops}")
+    print(bus_id_stops_dict)
+
+
+def add_value_dict(dict_obj, key, value):
+    if key not in dict_obj:
+        dict_obj[key] = value
+    elif isinstance(dict_obj[key], list):
+        dict_obj[key].append(value)
+    else:
+        dict_obj[key] = [dict_obj[key], value]
+
+
+def check_start_end_stops():
+    stops = {}
+    for i in range(len(bus_stops)):
+        add_value_dict(stops, bus_stops[i]['bus_id'], bus_stops[i]['stop_type'])
+
+    for line, stop_type in stops.items():
+        if 'S' not in stop_type or 'F' not in stop_type:
+            print(f"There is no start or end stop for the line: {line}.")
+            break
+        else:
+            continue
+
+
+class BusContainer:
+    def __init__(self):
+        self.allbuses = []
+
+    def all_lines_saved(self):
+        print(len(self.allbuses))
+
+    def add_bus_line(self, bus):
+        self.allbuses.append(bus)
+
+
+class BusLine:
+    def __init__(self, bus_id):
+        self.bus_id = bus_id
+        self.stops_types_and_names = {}
+        self.stop_names = []
+        self.stop_id_time_name = {}
+        self.wrong_times = []
+
+    def get_stops(self):
+        for stop_t, name in self.stops_types_and_names.items():
+            print(stop_t, name)
+
+    def bus_info(self, fields_details):
+        for i in range(len(fields_details)):
+            if fields_details[i]['bus_id'] == self.bus_id:
+                add_value_dict(self.stops_types_and_names, fields_details[i]['stop_type'],
+                               fields_details[i]['stop_name'])
+                # self.stops_types_and_names[fields_details[i]['stop_type']] = fields_details[i]['stop_name']
+                self.stop_names.append(fields_details[i]['stop_name'])
+                add_value_dict(self.stop_id_time_name, fields_details[i]['stop_id'], fields_details[i]['a_time'])
+                add_value_dict(self.stop_id_time_name, fields_details[i]['stop_id'], fields_details[i]['stop_name'])
+
+    def check_hours(self):
+        global hs_ok
+        t0 = ''
+        pattern = re.compile(r'^[0-2][0-9]:[0-5][0-9]')
+        for id, time_name in self.stop_id_time_name.items():
+            for x in time_name:
+                if pattern.match(x):
+                    t1 = datetime.datetime.strptime(x, '%H:%M')
+                    if not t0:
+                        t0 = t1
+                    elif t1 <= t0:
+                        hs_ok = False
+                        if not self.wrong_times:
+                            self.wrong_times.append(time_name[1])
+                        else:
+                            pass
+                    else:
+                        t0 = t1
+                        continue
+
+
+def create_buses():
+    buses_list = set()
+    for i in range(len(bus_stops)):
+        for x, v in bus_stops[i].items():
+            if x == 'bus_id':
+                if v in buses_list:
+                    continue
+                else:
+                    buses_list.add(v)
+                    c = BusLine(v)
+                    c.bus_info(bus_stops)
+                    buses_container.add_bus_line(c)
+
+
+def output_stage4(container):
+    start_stops = set()
+    end_stops = set()
+    all_stops = []
+    for buses in container.allbuses:
+        for x, v in buses.stops_types_and_names.items():
+            if x == 'S':
+                start_stops.add(v)
+            elif x == 'F':
+                end_stops.add(v)
+        for x in buses.stop_names:
+            all_stops.append(x)
+    transfer_stops = [item for item, count in collections.Counter(all_stops).items() if count > 1]
+
+    print(f'Start stops: {len(start_stops)} {sorted(list(start_stops))}')
+    print(f'Transfer stops: {len(transfer_stops)} {sorted(transfer_stops)}')
+    print(f'End stops: {len(end_stops)} {sorted(list(end_stops))}')
+
+
+def output_stage5():
+    for bus in buses_container.allbuses:
+        # print(bus.stop_id_time_name)
+        bus.check_hours()
+    if hs_ok:
+        print('Arrival time test: ')
+        print('OK')
+    else:
+        print('Arrival time test: ')
+        for bus in buses_container.allbuses:
+            for x in bus.wrong_times:
+                print(f'bus_id line {bus.bus_id}: wrong time on station {x}')
+
+
+def on_demand_stops_check():
+    start_stops = set()
+    end_stops = set()
+    on_demand_stops = set()
+    wrong_stop_type = []
+    no_type_stops = set()
+    all_stops = []
+    for buses in buses_container.allbuses:
+        for x, v in buses.stops_types_and_names.items():
+            if x == 'S':
+                if isinstance(v, list):
+                    for item in v:
+                        start_stops.add(item)
+                else:
+                    start_stops.add(v)
+            elif x == 'F':
+                if isinstance(v, list):
+                    for item in v:
+                        end_stops.add(item)
+                else:
+                    end_stops.add(v)
+            elif x == 'O':
+                if isinstance(v, list):
+                    for item in v:
+                        on_demand_stops.add(item)
+                else:
+                    on_demand_stops.add(v)
+            if x == '':
+                if isinstance(v, list):
+                    for item in v:
+                        no_type_stops.add(item)
+                else:
+                    no_type_stops.add(v)
+
+    transfer_stops = set(item for item, count in collections.Counter(all_stops).items() if count > 1)
+
+    for on_d in on_demand_stops:
+        if on_d in start_stops or on_d in end_stops or on_d in transfer_stops or on_d in no_type_stops:
+            wrong_stop_type.append(on_d)
+
+    if wrong_stop_type:
+        print('On demand stops test:')
+        print(f'Wrong stop type: {sorted(wrong_stop_type)}')
+    else:
+        print('On demand stops test:')
+        print('OK')
+
+
+if __name__ == '__main__':
+    hs_ok = True
+    check_start_end_stops()
+    buses_container = BusContainer()
+    create_buses()
+    # output_stage4(buses_container)
+    # output_stage5()
+    on_demand_stops_check()
