@@ -1,0 +1,162 @@
+import re
+from collections import Counter
+# Solution without using Stack
+
+class Calculator:
+    def __init__(self):
+        self.run = True
+        self.inp = str
+        self.action = {'/help': self.calc_help,
+                       '/exit': self.calc_stop}
+        self.variables = {}
+        self.parenthesis_even = bool
+
+    def calc_help(self):
+        print('The program calculates operations with numbers and variables')
+
+    def calc_stop(self):
+        print('Bye!')
+        exit()
+
+    def calc_eval(self):
+        print(eval(self.inp))
+
+    def valid_expression(self):
+        if self.inp.isalpha() or self.inp.endswith('+') or self.inp.endswith('-'):
+            print('Invalid expression')
+        elif self.inp.startswith('+'):
+            num = self.inp.replace('+', '')
+            print(num)
+        else:
+            print(self.inp)
+
+    def check_identifier(self):
+        """check left side of the '=' """
+        eq_idx = self.inp.index('=')
+        identifier = self.inp[:eq_idx].replace(' ', '')
+        if not identifier.isalpha():
+            print('Invalid identifier')
+
+    def check_assignment(self):
+        """check right side of the '='"""
+        eq_idx = self.inp.index('=')
+        identifier = self.inp[:eq_idx].replace(' ', '')
+        assignment = self.inp[eq_idx + 1:].replace(' ', '')
+        if assignment.isdigit():
+            self.variables[identifier] = assignment
+        elif assignment.isalpha():
+            if assignment not in self.variables.keys():
+                print("Unknown variable")
+            else:
+                self.variables[identifier] = self.variables[assignment]
+        elif assignment.isdigit():
+            self.variables[identifier] = assignment
+        else:
+            print("Invalid assignment")
+
+    def find_value(self):
+        """check if variable was defined & find it`s value"""
+        if self.inp in self.variables.keys():
+            for key, val in self.variables.items():
+                if self.inp == key:
+                    print(val)
+        else:
+            print('Unknown variable')
+
+    def variable_operations(self):
+        """replace variable`s name`s for their values"""
+        inp = self.inp.split()
+        for item in inp:
+            if item.isalpha():
+                if item in self.variables.keys():
+                    for k, v in self.variables.items():
+                        if k == item:
+                            idx = inp.index(item)
+                            inp.insert(idx, v)
+                            inp.remove(item)
+        full_operation = ''.join(inp)
+        try:
+            print(int(eval(full_operation)))
+        except NameError:
+            print('Unknown variable')
+
+    def check_parenthesis(self):
+        """check if the number of parenthesis is ok"""
+        open_p = 0
+        close = 0
+        for k, v in Counter(self.inp).items():
+            if k == '(':
+                open_p = v
+            elif k == ')':
+                close = v
+        if open_p != close:
+            print('Invalid expression')
+            self.parenthesis_even = False
+        else:
+            self.parenthesis_even = True
+
+    def calc_run(self):
+        command_pattern = re.compile(r'[\/][a-z]')
+        # look for many '+' signs together
+        multiple_add = re.compile(r'[+]+')
+        # look for two '-' signs to replace them for '+' sign
+        multiple_substraction = re.compile(r'--')
+        # look for '+-' to replace them for '-' sign
+        add_substraction_group = re.compile(r'\+-')
+        # look for >1 '/' sign (invalid expression)
+        many_division_sym = re.compile(r'[\/]{2,}')
+        # look for >1 '*' sign (invalid expression)
+        many_mult_sym = re.compile(r'[*]{2,}')
+
+        while self.run:
+            self.inp = input()
+            self.inp = re.sub(multiple_add, '+', str(self.inp))
+            self.inp = re.sub(multiple_substraction, '+', str(self.inp))
+            self.inp = re.sub(multiple_add, '+', str(self.inp))
+            self.inp = re.sub(add_substraction_group, '-', str(self.inp))
+            # look for command
+            if command_pattern.match(self.inp):
+                if self.inp in self.action:
+                    self.action[self.inp]()
+                else:
+                    print('Unknown command')
+
+            elif many_mult_sym.search(self.inp) or many_division_sym.search(self.inp):
+                print('Invalid expression')
+
+            elif self.inp.isalpha():
+                self.find_value()
+
+            elif '=' in self.inp:
+                self.check_identifier()
+                self.check_assignment()
+
+            elif ' ' in self.inp:
+                self.check_parenthesis()
+                if not self.parenthesis_even:
+                    continue
+                else:
+                    pattern = re.compile(r'(\d+) ([+-]*)')
+                    variables_pattern = re.compile(r'([A-Za-z]+)')
+                    if variables_pattern.search(self.inp):
+                        self.variable_operations()
+                    elif pattern.search(self.inp):
+                        self.calc_eval()
+                    else:
+                        print('Invalid expression')
+
+            elif not self.inp:
+                continue
+
+            else:
+                self.valid_expression()
+                continue
+
+
+def main():
+    my_calc = Calculator()
+    my_calc.calc_run()
+
+
+if __name__ == '__main__':
+    main()
