@@ -1,0 +1,470 @@
+# write your code here
+import random
+
+
+class TicTacToe():
+
+    def __init__(self):
+        self.ceil = '-' * 9
+        self.floor = self.ceil
+        self.initial_state_input = str
+        self.board = list
+        self.x_turn = True
+        self.x = int
+        self.y = int
+        self.empty_spaces = bool
+        self.x_winner = False
+        self.o_winner = False
+        self.draw = bool
+        self.AI_easy_1 = bool
+        self.AI_easy_both = bool
+        self.AI_medium = bool
+        self.AI_two = bool
+        self.AI_hard = bool
+        self.all_empty = bool
+
+    def clean_board_and_reset(self):
+        self.initial_state_input = ' ' * 6
+        self.board = [[x for x in self.initial_state_input[:3]] for x in self.initial_state_input[3:]]
+        self.empty_spaces = True
+        self.all_empty = True
+        self.x_turn = True
+        self.x_winner = False
+        self.o_winner = False
+        self.draw = False
+
+    def board_state(self):
+        print(self.ceil)
+        for i in self.board:
+            print('|', *i, '|')
+        print(self.floor)
+
+    def making_move(self):
+        if self.board[self.x - 1][self.y - 1] == ' ':
+            if self.x_turn:
+                self.board[self.x - 1][self.y - 1] = 'X'
+                self.x_turn = False
+            else:
+                self.board[self.x - 1][self.y - 1] = 'O'
+                self.x_turn = True
+
+    def comp_move_easy(self):
+        while True:
+            self.x = random.randint(1, 3)
+            self.y = random.randint(1, 3)
+            if self.board[self.x - 1][self.y - 1] != ' ':
+                continue
+            else:
+                break
+        self.making_move()
+        print('Making move level "easy"')
+
+    def comp_move_medium(self):
+        x_in_row1 = self.board[0].count('X')
+        empty_in_row1 = self.board[0].count(' ')
+        o_in_row1 = self.board[0].count('O')
+        x_in_row2 = self.board[1].count('X')
+        empty_in_row2 = self.board[1].count(' ')
+        o_in_row2 = self.board[1].count('O')
+        x_in_row3 = self.board[2].count('X')
+        empty_in_row3 = self.board[2].count(' ')
+        o_in_row3 = self.board[2].count('O')
+        if x_in_row1 > 1 and empty_in_row1 > 0:
+            print('Making move level "medium"')
+            self.x = 1
+            self.y = self.board[0].index(' ') + 1
+            self.making_move()
+        elif o_in_row1 > 1 and empty_in_row1 > 0:
+            print('Making move level "medium"')
+            self.x = 1
+            self.y = self.board[0].index(' ') + 1
+            self.making_move()
+
+        elif x_in_row2 > 1 and empty_in_row2 > 0:
+            print('Making move level "medium"')
+            self.x = 2
+            self.y = self.board[1].index(' ') + 1
+            self.making_move()
+
+        elif o_in_row2 > 1 and empty_in_row2 > 0:
+            print('Making move level "medium"')
+            self.x = 2
+            self.y = self.board[1].index(' ') + 1
+            self.making_move()
+
+        elif x_in_row3 > 1 and empty_in_row3 > 0:
+            print('Making move level "medium"')
+            self.x = 3
+            self.y = self.board[2].index(' ') + 1
+            self.making_move()
+
+        elif o_in_row3 > 1 and empty_in_row3 > 0:
+            print('Making move level "medium"')
+            self.x = 3
+            self.y = self.board[2].index(' ') + 1
+            self.making_move()
+
+        elif self.board[0][0] == self.board[1][1] and self.board[0][0] != ' ' \
+                and self.board[2][2] == ' ':
+            print('Making move level "medium"')
+            self.x = 3
+            self.y = 3
+            self.making_move()
+
+        elif self.board[0][0] == self.board[2][2] and self.board[0][0] != ' '\
+                and self.board[1][1] == ' ':
+            print('Making move level "medium"')
+            self.x = 2
+            self.y = 2
+            self.making_move()
+
+        elif self.board[0][2] == self.board[1][1] and self.board[0][2] != ' '\
+                and self.board[2][0] == ' ':
+            print('Making move level "medium"')
+            self.x = 3
+            self.y = 1
+            self.making_move()
+
+        elif self.board[0][2] == self.board[2][0] and self.board[0][2] != ' '\
+                and self.board[1][1] == ' ':
+            print('Making move level "medium"')
+            self.x = 2
+            self.y = 2
+            self.making_move()
+
+        else:
+            self.comp_move_easy()
+
+    def is_end(self):
+        #vertical win
+        for i in range(0, 3):
+            if (self.board[0][i] != ' ' and
+                    self.board[0][i] == self.board[1][i] and
+                    self.board[1][i] == self.board[2][i]):
+                return self.board[0][i]
+        # horizontal win
+        for i in range(0, 3):
+            if self.board[i] == ['X', 'X', 'X']:
+                return 'X'
+            elif self.board[i] == ['O', 'O', 'O']:
+                return 'O'
+
+        #main diagonal win
+        if (self.board[0][0] != ' ' and
+                self.board[0][0] == self.board[1][1] and
+                self.board[0][0] == self.board[2][2]):
+            return self.board[0][0]
+
+        #second diagonal win
+        if (self.board[0][2] != ' ' and
+                self.board[0][2] == self.board[1][1] and
+                self.board[0][2] == self.board[2][0]):
+            return self.board[0][2]
+
+        #if board is full
+        for i in range(0, 3):
+            for j in range(0, 3):
+                #game continues if there is empty cell
+                if self.board[i][j] == ' ':
+                    return None
+        #tie
+        return ' '
+
+    def result_(self):
+        result_from_fx = self.is_end()
+        if result_from_fx != None:
+            if result_from_fx == 'X':
+                self.x_winner = True
+                print('X wins')
+            elif result_from_fx == 'O':
+                self.o_winner = True
+                print('O wins')
+            elif result_from_fx == ' ':
+                self.draw = True
+                print("Draw")
+
+    def max(self):
+        global depth
+        maxv = -20
+        px = None
+        py = None
+
+        result = self.is_end()
+
+        depth += 1
+        if result == huPlayer:
+            return (-10 - depth, 0, 0)
+        elif result == aiPlayer:
+            return (10 + depth, 0, 0)
+        elif result == " ":
+            return (0, 0, 0)
+
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if self.board[i][j] == ' ':
+                    # On the empty field player 'O' makes a move and calls Min
+                    # That's one branch of the game tree.
+                    self.board[i][j] = aiPlayer
+                    (m, min_i, min_j) = self.min()
+                    # Fixing the maxv value if needed
+                    if m > maxv:
+                        maxv = m
+                        px = i
+                        py = j
+                    # Setting back the field to empty
+                    self.board[i][j] = ' '
+        return (maxv, px, py)
+
+    def min(self):
+
+        # Possible values for minv are:
+        # -1 - win
+        # 0  - a tie
+        # 1  - loss
+
+        # We're initially setting it to 2 as worse than the worst case:
+        minv = 20
+
+        qx = None
+        qy = None
+
+        result = self.is_end()
+
+        if result == huPlayer:
+            return (-10 - depth, 0, 0)
+        elif result == aiPlayer:
+            return (10 + depth, 0, 0)
+        elif result == ' ':
+            return (0, 0, 0)
+
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if self.board[i][j] == ' ':
+                    self.board[i][j] = huPlayer
+                    (m, max_i, max_j) = self.max()
+                    if m < minv:
+                        minv = m
+                        qx = i
+                        qy = j
+                    self.board[i][j] = ' '
+
+        return (minv, qx, qy)
+
+    def comp_hard_move(self):
+        global aiPlayer
+        global huPlayer
+        global depth
+        depth = 0
+        aiPlayer = self.next_move()
+        options = ["X", "O"]
+        options.remove(aiPlayer)
+        huPlayer = options[0]
+
+        (maxv, px, py) = self.max()
+
+        print('Making move level "hard"')
+        self.board[px][py] = aiPlayer
+
+    def next_move(self):
+        x = 0
+        o = 0
+        for i in self.board:
+            for j in i:
+                if j == "X":
+                    x += 1
+                elif j == "O":
+                    o += 1
+        if x == o:
+            return "X"
+        else:
+            return "O"
+
+    def menu(self):
+        while True:
+            command = input('Input command: ').split(' ')
+            if len(command) != 3:
+                if command[0] == 'exit':
+                    exit()
+                else:
+                    print('Bad parameters!')
+                    continue
+            elif command[0] == 'start':
+                if command[1] == command[2] and command[1] == 'easy':
+                    self.AI_easy_both = True
+                    self.AI_easy_1 = True
+                    self.AI_two = True
+                    self.AI_medium = False
+                    self.AI_hard = False
+                    break
+                elif (command[1] == 'easy' and command[2] == 'user') or \
+                        (command[1] == 'user' and command[2] == 'easy'):
+                    self.AI_easy_1 = True
+                    self.AI_easy_both = False
+                    self.AI_medium = False
+                    self.AI_hard = False
+                    self.AI_two =  False
+                    break
+                elif command[1] == command[2] and command[1] == 'user':
+                    self.AI_easy_1 = False
+                    self.AI_easy_both = False
+                    self.AI_medium = False
+                    self.AI_hard = False
+                    self.AI_two = False
+                    break
+                elif command[1] == command[2] and command[1] == 'medium':
+                    self.AI_medium = True
+                    self.AI_easy_1 = False
+                    self.AI_easy_both = False
+                    self.AI_two = True
+                    self.AI_hard = False
+                    break
+                elif (command[1] == 'medium' and command[2] == 'user') or \
+                        (command[1] == 'user' and command[2] == 'medium'):
+                    self.AI_medium = True
+                    self.AI_easy_1 = False
+                    self.AI_easy_both = False
+                    self.AI_two = False
+                    self.AI_hard = False
+                    break
+                elif (command[1] == 'hard' and command[2] == 'user') or \
+                        (command[1] == 'user' and command[2] == 'hard'):
+                    self.AI_medium = False
+                    self.AI_easy_1 = False
+                    self.AI_easy_both = False
+                    self.AI_two = False
+                    self.AI_hard = True
+                    break
+                elif command[1] == command[2] and command[1] == 'hard':
+                    self.AI_hard = True
+                    self.AI_easy_1 = False
+                    self.AI_two = True
+                    self.AI_easy_both = False
+                    self.AI_medium = False
+                    break
+                elif (command[1] == 'hard' and command[2] == 'easy') or \
+                        (command[1] == 'easy' and command[2] == 'hard'):
+                    self.AI_hard = True
+                    self.AI_two = True
+                    self.AI_easy_1 = True
+                    self.AI_easy_both = False
+                    self.AI_medium = False
+                    break
+                elif (command[1] == 'hard' and command[2] == 'medium') or \
+                        (command[1] == 'medium' and command[1] == 'hard'):
+                    self.AI_hard = True
+                    self.AI_two = True
+                    self.AI_easy_1 = False
+                    self.AI_easy_both = False
+                    self.AI_medium = True
+                    break
+
+    def request_coord(self):
+        while True:
+            user_coord = input('Enter the coordinates: ')
+            if len(user_coord.split()) != 2:
+                print('You should enter numbers!')
+                continue
+            else:
+                x, y = user_coord.split()
+            try:
+                self.x = int(x)
+                self.y = int(y)
+                x = int(x)
+                y = int(y)
+            except ValueError:
+                print('You should enter numbers!')
+                continue
+            if not 1 <= x <= 3 or not 1 <= y <= 3:
+                print('Coordinates should be from 1 to 3!')
+                continue
+            elif self.board[x - 1][y - 1] != ' ':
+                print('This cell is occupied! Choose another one!')
+                continue
+            else:
+                break
+
+
+
+    def flow_both_AI(self):
+        self.board_state()
+        while True:
+            if self.AI_easy_both:
+                self.comp_move_easy()
+            elif self.AI_medium:
+                self.comp_move_medium()
+            elif self.AI_hard:
+                self.comp_hard_move()
+            self.board_state()
+            self.result_()
+            if self.x_winner:
+                break
+            elif self.o_winner:
+                break
+            elif self.draw:
+                break
+            else:
+                continue
+
+    def flow_one_AI(self):
+        self.board_state()
+        while True:
+            self.result_()
+            if self.x_winner:
+                break
+            elif self.o_winner:
+                break
+            elif self.draw:
+                break
+            self.request_coord()
+            self.making_move()
+            self.board_state()
+            self.result_()
+            if self.x_winner:
+                break
+            elif self.o_winner:
+                break
+            elif self.draw:
+                break
+            else:
+                if self.AI_easy_1:
+                    self.comp_move_easy()
+                elif self.AI_medium:
+                    self.comp_move_medium()
+                elif self.AI_hard:
+                    self.comp_hard_move()
+                self.board_state()
+                continue
+
+    def flow_without_AI(self):
+        self.board_state()
+        while True:
+            self.is_end()
+            self.request_coord()
+            self.making_move()
+            self.board_state()
+            self.result_()
+            if self.x_winner:
+                break
+            elif self.o_winner:
+                break
+            elif self.draw:
+                break
+
+    def run(self):
+        while True:
+            self.menu()
+            self.clean_board_and_reset()
+            if not self.AI_easy_both and not self.AI_easy_1 and not self.AI_medium and not self.AI_hard:
+                self.flow_without_AI()
+            elif self.AI_easy_1 or self.AI_medium or self.AI_hard:
+                if not self.AI_two and not self.AI_easy_both:
+                    self.flow_one_AI()
+                elif self.AI_two:
+                    self.flow_both_AI()
+                elif self.AI_easy_both:
+                    self.flow_both_AI()
+
+
+if __name__ == '__main__':
+    tic1 = TicTacToe()
+    tic1.run()
