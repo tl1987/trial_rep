@@ -1,0 +1,230 @@
+
+
+GAME_STATUS = {
+    'NEW_GAME': 0,
+    'STATUS_PLAYING': 1,
+    'STATUS_XWIN': 2,
+    'STATUS_OWIN': 3,
+    'STATUS_TIE': 4
+}
+
+GAME_SYMBOL = {
+    'X_SYMBOL': 'X',
+    'O_SYMBOL': 'O'
+}
+
+
+def main():
+    while True:
+        menu()
+        board = empty_board()
+        print_board(board)
+        player_1, player_2 = get_player_symbols()
+        play_match(board, player_1, player_2)
+
+
+# options menu
+def menu():
+    title_msg = "TIC TAC TOE \n"
+    new_game = "New game? y/n \n"
+    error_msg = "Not a valid command\n"
+    answers = {'yes': ['yes', 'y', 'yop'], 'no': ['no', 'n', 'nope']}  # elegi la opcion del diccionario pq me parecio
+    print(title_msg)                                                    # q quedaba mejor en la lectura del codigo.
+
+    while True:  # loop until commands are ok.
+        user_action = input(new_game).lower()
+        if user_action in answers['yes']:
+            reset_board()
+            break
+        elif user_action in answers['no']:
+            print("Bye!")
+            exit()
+        else:
+            print(error_msg)
+        continue
+
+
+# check if full board & winner fx
+def play_match(board, player_1, player_2):
+    turn = 0
+    while True:
+        winner = get_winner(board)
+        if winner == GAME_STATUS['STATUS_TIE']:
+            print('IT IS A TIE!!!')
+            break
+        elif winner == GAME_STATUS['STATUS_XWIN']:
+            print('X WINS!')
+            break
+        elif winner == GAME_STATUS['STATUS_OWIN']:
+            print('O WINS!!!')
+            break
+        # update board each time through arguments of fx "start game"
+        else:
+            player = player_1 if turn == 0 else player_2
+            board = play_turn(board, player)
+            print_board(board)
+            turn = 1 if turn == 0 else 0
+
+
+# checks turn based on a counter
+def play_turn(board, player):
+    print(f"Player {player}, it is your turn.")
+    new_board = input_coordinates(board, player)
+    return new_board
+
+# assign X or O symbol to player 1 and 2
+def get_player_symbols():
+    while True:
+        player_1 = input("Enter Player 1 symbol: ")
+        if player_1.upper() == GAME_SYMBOL['X_SYMBOL']:
+            player_2 = GAME_SYMBOL['O_SYMBOL']
+            return player_1, player_2
+
+        elif player_1.upper() == GAME_SYMBOL['O_SYMBOL']:
+            player_1 = GAME_SYMBOL['O_SYMBOL']
+            player_2 = GAME_SYMBOL['X_SYMBOL']
+            return player_1, player_2
+
+        else:
+            continue
+
+
+# generate empty board
+def empty_board():
+    board = [['_' for _ in range(3)] for _ in range(3)]
+    return board
+
+
+# print board state
+def print_board(board):
+    print(('-' * 7).center(10))
+    for i in board:
+        print('|', *i, '|')
+    print(('-' * 7).center(10))
+    print("")
+
+
+# reset board for new game
+def reset_board():
+    STATUS = GAME_STATUS['NEW_GAME']
+    return STATUS
+
+
+# search for empty cells
+def is_full(some_board):
+    empty_cells = 0
+    for i in range(3):
+        for j in range(3):
+            if some_board[i][j] == '_':
+                empty_cells += 1
+    if empty_cells > 0:
+        full_board = False
+    else:
+        full_board = True
+    return full_board
+
+
+# prompt user for coordinates and catch errors
+def input_coordinates(board, player):
+    if not is_full(board):
+        while True:
+            # check if user entered numbers
+            try:
+                x_str, y_str = input("Enter coord (from 0 0 to 3 3):\n").split()
+                if not x_str.isdigit() or not y_str.isdigit():
+                    print("not a digit")
+                    continue
+            except ValueError:
+                print("Type two numbers")
+                continue
+            try:
+                x = int(x_str) - 1
+                y = int(y_str) - 1
+            except TypeError or ValueError:
+                print("number required for coord")
+                continue
+
+                # check index range
+            if x < 0 or x > 2:
+                print("Coord X from 1 to 3")
+                continue
+            elif y < 0 or y > 2:
+                print("Coord Y from 1 to 3")
+                continue
+
+            # coordinates are ok.
+            else:
+                if board[x][y] == '_':  # check if last board`s target cell is empty
+                    board = insert_symbol(board, x, y, player)
+                    return board
+                else:
+                    print("Cell is not empty.")
+                    continue
+
+
+# insert new coord X or O in new board
+# return the new board with updated game state
+def insert_symbol(board, x, y, player):
+    next_board = []
+    for i in range(3):
+        row = []  # generate new list row for each row of new board
+        for j in range(3):
+            if i == x and j == y:
+                insert_symbol_in_row(row, player)  # insert new coord in new board
+            else:
+                row.append(board[i][j])
+        next_board.append(row)  # append the list row with its data into the new board
+    return next_board
+
+
+# change '_' in board into X or O
+def insert_symbol_in_row(board_row, player):
+    if player == GAME_SYMBOL['X_SYMBOL']:  # check which turn is it before changing board
+        board_row.append('X')
+    elif player == GAME_SYMBOL['O_SYMBOL']:
+        board_row.append('O')
+
+
+# check if there is a winner or tie
+def get_winner(board):
+    for i in range(3):
+        # horizontal lines
+        if board[i][0] == board[i][1] == board[i][2] == 'X':
+            STATUS = GAME_STATUS['STATUS_XWIN']
+            return STATUS
+        elif board[i][0] == board[i][1] == board[i][2] == 'O':
+            STATUS = GAME_STATUS['STATUS_OWIN']
+            return STATUS
+
+        # vertical lines
+    for j in range(3):
+        if board[0][j] == board[1][j] == board[2][j] == 'X':
+            STATUS = GAME_STATUS['STATUS_XWIN']
+            return STATUS
+        elif board[0][j] == board[1][j] == board[2][j] == 'O':
+            STATUS = GAME_STATUS['STATUS_OWIN']
+            return STATUS
+
+    #   diagonal lines
+    if board[0][0] == board[1][1] == board[2][2] == 'X':
+        STATUS = GAME_STATUS['STATUS_XWIN']
+        return STATUS
+    elif board[0][0] == board[1][1] == board[2][2] == 'O':
+        STATUS = GAME_STATUS['STATUS_OWIN']
+        return STATUS
+    elif board[0][2] == board[1][1] == board[2][0] == 'X':
+        STATUS = GAME_STATUS['STATUS_XWIN']
+        return STATUS
+    elif board[0][2] == board[1][1] == board[2][0] == 'O':
+        STATUS = GAME_STATUS['STATUS_OWIN']
+        return STATUS
+    elif is_full(board):
+        STATUS = GAME_STATUS['STATUS_TIE']
+        return STATUS
+    else:
+        STATUS = GAME_STATUS['STATUS_PLAYING']
+        return STATUS
+
+
+if __name__ == '__main__':
+    main()
